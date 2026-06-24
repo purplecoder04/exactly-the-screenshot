@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodayRouteImport } from './routes/today'
+import { Route as RiseRouteImport } from './routes/rise'
 import { Route as ParkingLotRouteImport } from './routes/parking-lot'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TodayRoute = TodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiseRoute = RiseRouteImport.update({
+  id: '/rise',
+  path: '/rise',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParkingLotRoute = ParkingLotRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/rise': typeof RiseRoute
   '/today': typeof TodayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/rise': typeof RiseRoute
   '/today': typeof TodayRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/rise': typeof RiseRoute
   '/today': typeof TodayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/brand' | '/parking-lot' | '/today'
+  fullPaths: '/' | '/brand' | '/parking-lot' | '/rise' | '/today'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brand' | '/parking-lot' | '/today'
-  id: '__root__' | '/' | '/brand' | '/parking-lot' | '/today'
+  to: '/' | '/brand' | '/parking-lot' | '/rise' | '/today'
+  id: '__root__' | '/' | '/brand' | '/parking-lot' | '/rise' | '/today'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrandRoute: typeof BrandRoute
   ParkingLotRoute: typeof ParkingLotRoute
+  RiseRoute: typeof RiseRoute
   TodayRoute: typeof TodayRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rise': {
+      id: '/rise'
+      path: '/rise'
+      fullPath: '/rise'
+      preLoaderRoute: typeof RiseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parking-lot': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrandRoute: BrandRoute,
   ParkingLotRoute: ParkingLotRoute,
+  RiseRoute: RiseRoute,
   TodayRoute: TodayRoute,
 }
 export const routeTree = rootRouteImport
