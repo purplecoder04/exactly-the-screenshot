@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodayRouteImport } from './routes/today'
 import { Route as RiseRouteImport } from './routes/rise'
+import { Route as RebuildRouteImport } from './routes/rebuild'
 import { Route as ParkingLotRouteImport } from './routes/parking-lot'
 import { Route as LandRouteImport } from './routes/land'
 import { Route as BrandRouteImport } from './routes/brand'
@@ -24,6 +25,11 @@ const TodayRoute = TodayRouteImport.update({
 const RiseRoute = RiseRouteImport.update({
   id: '/rise',
   path: '/rise',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RebuildRoute = RebuildRouteImport.update({
+  id: '/rebuild',
+  path: '/rebuild',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParkingLotRoute = ParkingLotRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/brand': typeof BrandRoute
   '/land': typeof LandRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
   '/today': typeof TodayRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/brand': typeof BrandRoute
   '/land': typeof LandRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
   '/today': typeof TodayRoute
 }
@@ -69,20 +77,36 @@ export interface FileRoutesById {
   '/brand': typeof BrandRoute
   '/land': typeof LandRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
   '/today': typeof TodayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/brand' | '/land' | '/parking-lot' | '/rise' | '/today'
+  fullPaths:
+    | '/'
+    | '/brand'
+    | '/land'
+    | '/parking-lot'
+    | '/rebuild'
+    | '/rise'
+    | '/today'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brand' | '/land' | '/parking-lot' | '/rise' | '/today'
+  to:
+    | '/'
+    | '/brand'
+    | '/land'
+    | '/parking-lot'
+    | '/rebuild'
+    | '/rise'
+    | '/today'
   id:
     | '__root__'
     | '/'
     | '/brand'
     | '/land'
     | '/parking-lot'
+    | '/rebuild'
     | '/rise'
     | '/today'
   fileRoutesById: FileRoutesById
@@ -92,6 +116,7 @@ export interface RootRouteChildren {
   BrandRoute: typeof BrandRoute
   LandRoute: typeof LandRoute
   ParkingLotRoute: typeof ParkingLotRoute
+  RebuildRoute: typeof RebuildRoute
   RiseRoute: typeof RiseRoute
   TodayRoute: typeof TodayRoute
 }
@@ -110,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/rise'
       fullPath: '/rise'
       preLoaderRoute: typeof RiseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rebuild': {
+      id: '/rebuild'
+      path: '/rebuild'
+      fullPath: '/rebuild'
+      preLoaderRoute: typeof RebuildRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parking-lot': {
@@ -148,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrandRoute: BrandRoute,
   LandRoute: LandRoute,
   ParkingLotRoute: ParkingLotRoute,
+  RebuildRoute: RebuildRoute,
   RiseRoute: RiseRoute,
   TodayRoute: TodayRoute,
 }
