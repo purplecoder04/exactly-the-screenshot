@@ -15,6 +15,7 @@ import { Route as RebuildRouteImport } from './routes/rebuild'
 import { Route as ParkingLotRouteImport } from './routes/parking-lot'
 import { Route as MeetAtTheHealRouteImport } from './routes/meet-at-the-heal'
 import { Route as LandRouteImport } from './routes/land'
+import { Route as KitFactoryAppRouteImport } from './routes/kit-factory-app'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -48,6 +49,11 @@ const LandRoute = LandRouteImport.update({
   path: '/land',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KitFactoryAppRoute = KitFactoryAppRouteImport.update({
+  id: '/kit-factory-app',
+  path: '/kit-factory-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrandRoute = BrandRouteImport.update({
   id: '/brand',
   path: '/brand',
@@ -62,6 +68,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
+  '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
+  '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
+  '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/brand'
+    | '/kit-factory-app'
     | '/land'
     | '/meet-at-the-heal'
     | '/parking-lot'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/brand'
+    | '/kit-factory-app'
     | '/land'
     | '/meet-at-the-heal'
     | '/parking-lot'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/brand'
+    | '/kit-factory-app'
     | '/land'
     | '/meet-at-the-heal'
     | '/parking-lot'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrandRoute: typeof BrandRoute
+  KitFactoryAppRoute: typeof KitFactoryAppRoute
   LandRoute: typeof LandRoute
   MeetAtTheHealRoute: typeof MeetAtTheHealRoute
   ParkingLotRoute: typeof ParkingLotRoute
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kit-factory-app': {
+      id: '/kit-factory-app'
+      path: '/kit-factory-app'
+      fullPath: '/kit-factory-app'
+      preLoaderRoute: typeof KitFactoryAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/brand': {
       id: '/brand'
       path: '/brand'
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrandRoute: BrandRoute,
+  KitFactoryAppRoute: KitFactoryAppRoute,
   LandRoute: LandRoute,
   MeetAtTheHealRoute: MeetAtTheHealRoute,
   ParkingLotRoute: ParkingLotRoute,
