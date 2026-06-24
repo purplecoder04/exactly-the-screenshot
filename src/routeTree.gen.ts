@@ -13,6 +13,7 @@ import { Route as TodayRouteImport } from './routes/today'
 import { Route as RiseRouteImport } from './routes/rise'
 import { Route as RebuildRouteImport } from './routes/rebuild'
 import { Route as ParkingLotRouteImport } from './routes/parking-lot'
+import { Route as MeetAtTheHealRouteImport } from './routes/meet-at-the-heal'
 import { Route as LandRouteImport } from './routes/land'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,11 @@ const ParkingLotRoute = ParkingLotRouteImport.update({
   path: '/parking-lot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeetAtTheHealRoute = MeetAtTheHealRouteImport.update({
+  id: '/meet-at-the-heal',
+  path: '/meet-at-the-heal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LandRoute = LandRouteImport.update({
   id: '/land',
   path: '/land',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
   '/land': typeof LandRoute
+  '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
   '/land': typeof LandRoute
+  '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
   '/land': typeof LandRoute
+  '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/brand'
     | '/land'
+    | '/meet-at-the-heal'
     | '/parking-lot'
     | '/rebuild'
     | '/rise'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/brand'
     | '/land'
+    | '/meet-at-the-heal'
     | '/parking-lot'
     | '/rebuild'
     | '/rise'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/brand'
     | '/land'
+    | '/meet-at-the-heal'
     | '/parking-lot'
     | '/rebuild'
     | '/rise'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrandRoute: typeof BrandRoute
   LandRoute: typeof LandRoute
+  MeetAtTheHealRoute: typeof MeetAtTheHealRoute
   ParkingLotRoute: typeof ParkingLotRoute
   RebuildRoute: typeof RebuildRoute
   RiseRoute: typeof RiseRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParkingLotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meet-at-the-heal': {
+      id: '/meet-at-the-heal'
+      path: '/meet-at-the-heal'
+      fullPath: '/meet-at-the-heal'
+      preLoaderRoute: typeof MeetAtTheHealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/land': {
       id: '/land'
       path: '/land'
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrandRoute: BrandRoute,
   LandRoute: LandRoute,
+  MeetAtTheHealRoute: MeetAtTheHealRoute,
   ParkingLotRoute: ParkingLotRoute,
   RebuildRoute: RebuildRoute,
   RiseRoute: RiseRoute,
