@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WebsiteRouteImport } from './routes/website'
 import { Route as TodayRouteImport } from './routes/today'
 import { Route as SocialMediaAppRouteImport } from './routes/social-media-app'
 import { Route as RiseRouteImport } from './routes/rise'
@@ -20,6 +21,11 @@ import { Route as KitFactoryAppRouteImport } from './routes/kit-factory-app'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WebsiteRoute = WebsiteRouteImport.update({
+  id: '/website',
+  path: '/website',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TodayRoute = TodayRouteImport.update({
   id: '/today',
   path: '/today',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/rise': typeof RiseRoute
   '/social-media-app': typeof SocialMediaAppRoute
   '/today': typeof TodayRoute
+  '/website': typeof WebsiteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/rise': typeof RiseRoute
   '/social-media-app': typeof SocialMediaAppRoute
   '/today': typeof TodayRoute
+  '/website': typeof WebsiteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/rise': typeof RiseRoute
   '/social-media-app': typeof SocialMediaAppRoute
   '/today': typeof TodayRoute
+  '/website': typeof WebsiteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/rise'
     | '/social-media-app'
     | '/today'
+    | '/website'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/rise'
     | '/social-media-app'
     | '/today'
+    | '/website'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/rise'
     | '/social-media-app'
     | '/today'
+    | '/website'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,10 +170,18 @@ export interface RootRouteChildren {
   RiseRoute: typeof RiseRoute
   SocialMediaAppRoute: typeof SocialMediaAppRoute
   TodayRoute: typeof TodayRoute
+  WebsiteRoute: typeof WebsiteRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/website': {
+      id: '/website'
+      path: '/website'
+      fullPath: '/website'
+      preLoaderRoute: typeof WebsiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/today': {
       id: '/today'
       path: '/today'
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   RiseRoute: RiseRoute,
   SocialMediaAppRoute: SocialMediaAppRoute,
   TodayRoute: TodayRoute,
+  WebsiteRoute: WebsiteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
