@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebsiteRouteImport } from './routes/website'
 import { Route as TodayRouteImport } from './routes/today'
 import { Route as SocialMediaAppRouteImport } from './routes/social-media-app'
+import { Route as SocialMediaRouteImport } from './routes/social-media'
 import { Route as RiseRouteImport } from './routes/rise'
 import { Route as RebuildRouteImport } from './routes/rebuild'
 import { Route as ParkingLotRouteImport } from './routes/parking-lot'
@@ -34,6 +35,11 @@ const TodayRoute = TodayRouteImport.update({
 const SocialMediaAppRoute = SocialMediaAppRouteImport.update({
   id: '/social-media-app',
   path: '/social-media-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialMediaRoute = SocialMediaRouteImport.update({
+  id: '/social-media',
+  path: '/social-media',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RiseRoute = RiseRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/parking-lot': typeof ParkingLotRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
+  '/social-media': typeof SocialMediaRoute
   '/social-media-app': typeof SocialMediaAppRoute
   '/today': typeof TodayRoute
   '/website': typeof WebsiteRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/parking-lot': typeof ParkingLotRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
+  '/social-media': typeof SocialMediaRoute
   '/social-media-app': typeof SocialMediaAppRoute
   '/today': typeof TodayRoute
   '/website': typeof WebsiteRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/parking-lot': typeof ParkingLotRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
+  '/social-media': typeof SocialMediaRoute
   '/social-media-app': typeof SocialMediaAppRoute
   '/today': typeof TodayRoute
   '/website': typeof WebsiteRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/parking-lot'
     | '/rebuild'
     | '/rise'
+    | '/social-media'
     | '/social-media-app'
     | '/today'
     | '/website'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/parking-lot'
     | '/rebuild'
     | '/rise'
+    | '/social-media'
     | '/social-media-app'
     | '/today'
     | '/website'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/parking-lot'
     | '/rebuild'
     | '/rise'
+    | '/social-media'
     | '/social-media-app'
     | '/today'
     | '/website'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   ParkingLotRoute: typeof ParkingLotRoute
   RebuildRoute: typeof RebuildRoute
   RiseRoute: typeof RiseRoute
+  SocialMediaRoute: typeof SocialMediaRoute
   SocialMediaAppRoute: typeof SocialMediaAppRoute
   TodayRoute: typeof TodayRoute
   WebsiteRoute: typeof WebsiteRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/social-media-app'
       fullPath: '/social-media-app'
       preLoaderRoute: typeof SocialMediaAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social-media': {
+      id: '/social-media'
+      path: '/social-media'
+      fullPath: '/social-media'
+      preLoaderRoute: typeof SocialMediaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rise': {
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParkingLotRoute: ParkingLotRoute,
   RebuildRoute: RebuildRoute,
   RiseRoute: RiseRoute,
+  SocialMediaRoute: SocialMediaRoute,
   SocialMediaAppRoute: SocialMediaAppRoute,
   TodayRoute: TodayRoute,
   WebsiteRoute: WebsiteRoute,
