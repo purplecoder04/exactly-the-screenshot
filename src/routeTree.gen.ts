@@ -9,8 +9,80 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeeklyLogRouteImport } from './routes/weekly-log'
+import { Route as WebsiteRouteImport } from './routes/website'
+import { Route as TodayRouteImport } from './routes/today'
+import { Route as SocialMediaAppRouteImport } from './routes/social-media-app'
+import { Route as SocialMediaRouteImport } from './routes/social-media'
+import { Route as RiseRouteImport } from './routes/rise'
+import { Route as RebuildRouteImport } from './routes/rebuild'
+import { Route as ParkingLotRouteImport } from './routes/parking-lot'
+import { Route as MeetAtTheHealRouteImport } from './routes/meet-at-the-heal'
+import { Route as LandRouteImport } from './routes/land'
+import { Route as KitFactoryAppRouteImport } from './routes/kit-factory-app'
+import { Route as BrandRouteImport } from './routes/brand'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WeeklyLogRoute = WeeklyLogRouteImport.update({
+  id: '/weekly-log',
+  path: '/weekly-log',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebsiteRoute = WebsiteRouteImport.update({
+  id: '/website',
+  path: '/website',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TodayRoute = TodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialMediaAppRoute = SocialMediaAppRouteImport.update({
+  id: '/social-media-app',
+  path: '/social-media-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialMediaRoute = SocialMediaRouteImport.update({
+  id: '/social-media',
+  path: '/social-media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiseRoute = RiseRouteImport.update({
+  id: '/rise',
+  path: '/rise',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RebuildRoute = RebuildRouteImport.update({
+  id: '/rebuild',
+  path: '/rebuild',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParkingLotRoute = ParkingLotRouteImport.update({
+  id: '/parking-lot',
+  path: '/parking-lot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetAtTheHealRoute = MeetAtTheHealRouteImport.update({
+  id: '/meet-at-the-heal',
+  path: '/meet-at-the-heal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandRoute = LandRouteImport.update({
+  id: '/land',
+  path: '/land',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KitFactoryAppRoute = KitFactoryAppRouteImport.update({
+  id: '/kit-factory-app',
+  path: '/kit-factory-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandRoute = BrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +91,200 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
+  '/kit-factory-app': typeof KitFactoryAppRoute
+  '/land': typeof LandRoute
+  '/meet-at-the-heal': typeof MeetAtTheHealRoute
+  '/parking-lot': typeof ParkingLotRoute
+  '/rebuild': typeof RebuildRoute
+  '/rise': typeof RiseRoute
+  '/social-media': typeof SocialMediaRoute
+  '/social-media-app': typeof SocialMediaAppRoute
+  '/today': typeof TodayRoute
+  '/website': typeof WebsiteRoute
+  '/weekly-log': typeof WeeklyLogRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
+  '/kit-factory-app': typeof KitFactoryAppRoute
+  '/land': typeof LandRoute
+  '/meet-at-the-heal': typeof MeetAtTheHealRoute
+  '/parking-lot': typeof ParkingLotRoute
+  '/rebuild': typeof RebuildRoute
+  '/rise': typeof RiseRoute
+  '/social-media': typeof SocialMediaRoute
+  '/social-media-app': typeof SocialMediaAppRoute
+  '/today': typeof TodayRoute
+  '/website': typeof WebsiteRoute
+  '/weekly-log': typeof WeeklyLogRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
+  '/kit-factory-app': typeof KitFactoryAppRoute
+  '/land': typeof LandRoute
+  '/meet-at-the-heal': typeof MeetAtTheHealRoute
+  '/parking-lot': typeof ParkingLotRoute
+  '/rebuild': typeof RebuildRoute
+  '/rise': typeof RiseRoute
+  '/social-media': typeof SocialMediaRoute
+  '/social-media-app': typeof SocialMediaAppRoute
+  '/today': typeof TodayRoute
+  '/website': typeof WebsiteRoute
+  '/weekly-log': typeof WeeklyLogRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/brand'
+    | '/kit-factory-app'
+    | '/land'
+    | '/meet-at-the-heal'
+    | '/parking-lot'
+    | '/rebuild'
+    | '/rise'
+    | '/social-media'
+    | '/social-media-app'
+    | '/today'
+    | '/website'
+    | '/weekly-log'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/brand'
+    | '/kit-factory-app'
+    | '/land'
+    | '/meet-at-the-heal'
+    | '/parking-lot'
+    | '/rebuild'
+    | '/rise'
+    | '/social-media'
+    | '/social-media-app'
+    | '/today'
+    | '/website'
+    | '/weekly-log'
+  id:
+    | '__root__'
+    | '/'
+    | '/brand'
+    | '/kit-factory-app'
+    | '/land'
+    | '/meet-at-the-heal'
+    | '/parking-lot'
+    | '/rebuild'
+    | '/rise'
+    | '/social-media'
+    | '/social-media-app'
+    | '/today'
+    | '/website'
+    | '/weekly-log'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BrandRoute: typeof BrandRoute
+  KitFactoryAppRoute: typeof KitFactoryAppRoute
+  LandRoute: typeof LandRoute
+  MeetAtTheHealRoute: typeof MeetAtTheHealRoute
+  ParkingLotRoute: typeof ParkingLotRoute
+  RebuildRoute: typeof RebuildRoute
+  RiseRoute: typeof RiseRoute
+  SocialMediaRoute: typeof SocialMediaRoute
+  SocialMediaAppRoute: typeof SocialMediaAppRoute
+  TodayRoute: typeof TodayRoute
+  WebsiteRoute: typeof WebsiteRoute
+  WeeklyLogRoute: typeof WeeklyLogRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/weekly-log': {
+      id: '/weekly-log'
+      path: '/weekly-log'
+      fullPath: '/weekly-log'
+      preLoaderRoute: typeof WeeklyLogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/website': {
+      id: '/website'
+      path: '/website'
+      fullPath: '/website'
+      preLoaderRoute: typeof WebsiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/today': {
+      id: '/today'
+      path: '/today'
+      fullPath: '/today'
+      preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social-media-app': {
+      id: '/social-media-app'
+      path: '/social-media-app'
+      fullPath: '/social-media-app'
+      preLoaderRoute: typeof SocialMediaAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social-media': {
+      id: '/social-media'
+      path: '/social-media'
+      fullPath: '/social-media'
+      preLoaderRoute: typeof SocialMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rise': {
+      id: '/rise'
+      path: '/rise'
+      fullPath: '/rise'
+      preLoaderRoute: typeof RiseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rebuild': {
+      id: '/rebuild'
+      path: '/rebuild'
+      fullPath: '/rebuild'
+      preLoaderRoute: typeof RebuildRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parking-lot': {
+      id: '/parking-lot'
+      path: '/parking-lot'
+      fullPath: '/parking-lot'
+      preLoaderRoute: typeof ParkingLotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meet-at-the-heal': {
+      id: '/meet-at-the-heal'
+      path: '/meet-at-the-heal'
+      fullPath: '/meet-at-the-heal'
+      preLoaderRoute: typeof MeetAtTheHealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/land': {
+      id: '/land'
+      path: '/land'
+      fullPath: '/land'
+      preLoaderRoute: typeof LandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kit-factory-app': {
+      id: '/kit-factory-app'
+      path: '/kit-factory-app'
+      fullPath: '/kit-factory-app'
+      preLoaderRoute: typeof KitFactoryAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand': {
+      id: '/brand'
+      path: '/brand'
+      fullPath: '/brand'
+      preLoaderRoute: typeof BrandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +297,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BrandRoute: BrandRoute,
+  KitFactoryAppRoute: KitFactoryAppRoute,
+  LandRoute: LandRoute,
+  MeetAtTheHealRoute: MeetAtTheHealRoute,
+  ParkingLotRoute: ParkingLotRoute,
+  RebuildRoute: RebuildRoute,
+  RiseRoute: RiseRoute,
+  SocialMediaRoute: SocialMediaRoute,
+  SocialMediaAppRoute: SocialMediaAppRoute,
+  TodayRoute: TodayRoute,
+  WebsiteRoute: WebsiteRoute,
+  WeeklyLogRoute: WeeklyLogRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
