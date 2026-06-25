@@ -21,6 +21,7 @@ import { AreaPill } from "@/components/shared/AreaPill";
 import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
 import { TaskChecklistCards } from "@/components/shared/TaskChecklistCards";
 import { TaskDialog } from "@/components/shared/TaskDialog";
+import { plannerAssets } from "@/lib/plannerAssets";
 import type { TaskItem } from "@/lib/types";
 
 export const Route = createFileRoute("/today")({
@@ -57,6 +58,8 @@ function TodayPage() {
         eyebrow="Today & Focus"
         title="Today Daily CEO Checklist"
         description="Pick the few moves that matter, tend the extras, then close the day with a clean rollover."
+        decorAsset={plannerAssets.butterflyBlush}
+        decorClassName="right-10 top-4 h-28 w-40 opacity-30"
         actions={
           <>
             <Button asChild variant="outline">

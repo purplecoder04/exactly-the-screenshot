@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-import plannerAssetsUrl from "@/assets/planner/planner-assets.png";
 import { cn } from "@/lib/utils";
 
 type PlannerPageHeaderProps = {
@@ -10,6 +9,8 @@ type PlannerPageHeaderProps = {
   actions?: ReactNode;
   children?: ReactNode;
   className?: string;
+  decorAsset?: string | null;
+  decorClassName?: string;
 };
 
 export function PlannerPageHeader({
@@ -19,14 +20,22 @@ export function PlannerPageHeader({
   actions,
   children,
   className,
+  decorAsset = null,
+  decorClassName,
 }: PlannerPageHeaderProps) {
   return (
     <section className={cn("planner-card relative overflow-hidden p-5 md:p-6", className)}>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 bg-cover bg-center opacity-45 md:block"
-        style={{ backgroundImage: `url(${plannerAssetsUrl})` }}
-      />
+      {decorAsset && (
+        <img
+          aria-hidden="true"
+          src={decorAsset}
+          alt=""
+          className={cn(
+            "pointer-events-none absolute right-8 top-4 hidden h-32 w-48 object-contain opacity-35 mix-blend-multiply md:block",
+            decorClassName,
+          )}
+        />
+      )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-card via-card/95 to-card/65" />
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 max-w-2xl">

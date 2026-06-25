@@ -162,9 +162,9 @@
       radial-gradient(ellipse at 78% 4%, color-mix(in oklab, var(--blush) 34%, transparent), transparent 34%),
       radial-gradient(ellipse at 18% 94%, color-mix(in oklab, var(--lavender) 33%, transparent), transparent 42%),
       linear-gradient(120deg, rgba(255,255,255,0.45), rgba(247,236,220,0.88)),
-      url("./assets/planner/planner-assets.png");
-    background-size: auto, auto, auto, 920px auto;
-    background-position: center, center, center, right -260px top -180px;
+      url("./assets/planner/elements/paper-texture.png");
+    background-size: auto, auto, auto, 340px 340px;
+    background-position: center, center, center, center;
     background-attachment: fixed;
   }
 

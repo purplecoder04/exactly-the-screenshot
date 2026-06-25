@@ -11,6 +11,7 @@ import { ParkingLotDialog } from "@/components/shared/ParkingLotDialog";
 import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
 import { useParkingLot } from "@/hooks/useParkingLot";
 import { useTasks } from "@/hooks/useTasks";
+import { plannerAssets } from "@/lib/plannerAssets";
 import { PARKING_LOT_DECISIONS, type ParkingLotItem } from "@/lib/types";
 
 export const Route = createFileRoute("/parking-lot")({
@@ -48,6 +49,8 @@ function ParkingLotPage() {
         eyebrow="Idea Garden"
         title="Idea Garden"
         description="Plant thoughts here without forcing them into active work. Keep, maybe, or move them when they are ready."
+        decorAsset={plannerAssets.jarGarden}
+        decorClassName="right-10 top-3 h-36 w-36 opacity-35"
         actions={
           <Button
             onClick={() => {

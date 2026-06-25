@@ -33,7 +33,7 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
-import plannerAssetsUrl from "@/assets/planner/planner-assets.png";
+import { plannerAssets } from "@/lib/plannerAssets";
 
 type NavItem = {
   title: string;
@@ -128,14 +128,11 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border sidebar-gradient">
       <SidebarHeader className="relative overflow-hidden px-4 pb-4 pt-7">
-        <div
-          className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 opacity-65 mix-blend-multiply"
-          style={{
-            backgroundImage: `url(${plannerAssetsUrl})`,
-            backgroundSize: "340px auto",
-            backgroundPosition: "right top",
-            backgroundRepeat: "no-repeat",
-          }}
+        <img
+          aria-hidden="true"
+          src={plannerAssets.butterflyBlush}
+          alt=""
+          className="pointer-events-none absolute -right-8 -top-6 h-24 w-24 opacity-45 mix-blend-multiply"
         />
         <Link to="/" className="relative flex flex-col items-center gap-1.5 text-sidebar-foreground">
           <div className="font-display text-3xl italic leading-none text-plum-deep">
@@ -158,11 +155,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="gap-3 p-4">
         <div
-          className="rounded-2xl border border-blush/60 bg-warm-white/55 px-4 py-5 text-center font-script text-xl leading-snug text-plum-soft shadow-sm"
+          className="rounded-2xl border border-blush/60 bg-warm-white/65 bg-contain bg-center bg-no-repeat px-4 py-5 text-center font-script text-xl leading-snug text-plum-soft shadow-sm"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,250,243,0.78), rgba(255,250,243,0.78)), url(${plannerAssetsUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "left bottom",
+            backgroundImage: `linear-gradient(rgba(255,250,243,0.84), rgba(255,250,243,0.88)), url(${plannerAssets.washLavender})`,
           }}
         >
           <div>You don't have</div>

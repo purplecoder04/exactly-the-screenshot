@@ -44,8 +44,8 @@ import { AreaPill } from "@/components/shared/AreaPill";
 import { TaskDialog } from "@/components/shared/TaskDialog";
 import { ParkingLotDialog } from "@/components/shared/ParkingLotDialog";
 import { cn } from "@/lib/utils";
+import { plannerAssets, type PlannerAssetName } from "@/lib/plannerAssets";
 import type { TaskItem, WorkspaceArea } from "@/lib/types";
-import plannerAssetsUrl from "@/assets/planner/planner-assets.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -77,37 +77,39 @@ const PROJECTS = [
     subtitle: "Building the foundation",
     percent: 68,
     accent: "from-plum-soft to-orchid",
-    art: "book",
+    decor: "goldSparkles" as PlannerAssetName,
   },
   {
     area: "Rise" as WorkspaceArea,
     subtitle: "Empowering women",
     percent: 74,
     accent: "from-orchid to-blush",
-    art: "flower",
+    decor: "hydrangea" as PlannerAssetName,
   },
   {
     area: "Land" as WorkspaceArea,
     subtitle: "Helping men lead",
     percent: 52,
     accent: "from-green-muted to-sage",
-    art: "leaf",
+    decor: "leafSage" as PlannerAssetName,
   },
   {
     area: "Rebuild" as WorkspaceArea,
     subtitle: "Starting over strong",
     percent: 41,
     accent: "from-powder-blue to-green-muted",
-    art: "calm",
+    decor: "washBlue" as PlannerAssetName,
   },
   {
     area: "Meet at the Heal" as WorkspaceArea,
     subtitle: "Healing relationships",
     percent: 63,
     accent: "from-plum-soft to-gold",
-    art: "tea",
+    decor: "lavenderSprig" as PlannerAssetName,
   },
 ];
+
+const MISSION_DECOR: PlannerAssetName[] = ["butterflyLavender", "leafBlush", "butterflyOrchid"];
 
 const WORKSPACES = [
   { title: "CEO Studio", url: "/", icon: Crown, tint: "text-plum-soft bg-lavender/35" },
@@ -314,14 +316,11 @@ function MissionTaskCard({
 
   return (
     <Card className="group relative min-h-36 overflow-hidden border-paper-line bg-warm-white/85 transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(90,48,73,0.14)]">
-      <div
-        className="pointer-events-none absolute -left-12 -top-20 h-48 w-48 opacity-55 mix-blend-multiply transition group-hover:opacity-70"
-        style={{
-          backgroundImage: `url(${plannerAssetsUrl})`,
-          backgroundSize: "420px auto",
-          backgroundPosition: `${index * 34}% ${index === 0 ? "20%" : "40%"}`,
-          backgroundRepeat: "no-repeat",
-        }}
+      <img
+        aria-hidden="true"
+        src={plannerAssets[MISSION_DECOR[index] ?? "butterflyBlush"]}
+        alt=""
+        className="pointer-events-none absolute -right-5 -top-6 h-24 w-24 object-contain opacity-20 mix-blend-multiply transition group-hover:opacity-30"
       />
       <CardContent className="relative flex h-full flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
@@ -359,14 +358,14 @@ function ContinueWorkingCard({ task }: { task?: TaskItem }) {
         Continue Working
       </h2>
       <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-        <div
-          className="min-h-56 rounded-2xl border border-blush/50 bg-blush/20 shadow-inner"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,247,238,0.16), rgba(255,247,238,0.16)), url(${plannerAssetsUrl})`,
-            backgroundSize: "520px auto",
-            backgroundPosition: "left -55px top -42px",
-          }}
-        />
+        <div className="flex min-h-56 items-center justify-center rounded-2xl border border-blush/50 bg-blush/15 shadow-inner">
+          <img
+            aria-hidden="true"
+            src={plannerAssets.bookJournal}
+            alt=""
+            className="h-52 w-44 rotate-[-4deg] object-contain opacity-95 drop-shadow-[0_16px_24px_rgba(75,22,69,0.16)]"
+          />
+        </div>
         <div className="flex flex-col justify-center gap-3">
           <div>
             <h3 className="font-display text-3xl leading-tight text-ink">
@@ -429,14 +428,11 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
       href={AREA_ROUTES[project.area]}
       className="relative overflow-hidden rounded-2xl border border-paper-line bg-warm-white/75 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(90,48,73,0.12)]"
     >
-      <div
-        className="pointer-events-none absolute -right-12 -top-14 h-32 w-32 opacity-50 mix-blend-multiply"
-        style={{
-          backgroundImage: `url(${plannerAssetsUrl})`,
-          backgroundSize: "360px auto",
-          backgroundPosition: project.art === "book" ? "left top" : project.art === "tea" ? "right bottom" : "center",
-          backgroundRepeat: "no-repeat",
-        }}
+      <img
+        aria-hidden="true"
+        src={plannerAssets[project.decor]}
+        alt=""
+        className="pointer-events-none absolute -right-6 -top-5 h-20 w-20 object-contain opacity-20 mix-blend-multiply"
       />
       <div className="relative">
         <h3 className="font-display text-xl font-semibold text-ink">{project.area}</h3>
@@ -454,14 +450,13 @@ function DailyInspirationCard({ reminder }: { reminder: string }) {
   const quote = reminder.split("\n").filter(Boolean)[0] ?? "Girl... Build the simple version first.";
   return (
     <RailCard title="Daily Inspiration" icon={Sparkles} className="min-h-60">
-      <div
-        className="rounded-2xl border border-blush/45 bg-warm-white/55 p-5"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,250,243,0.58), rgba(255,250,243,0.78)), url(${plannerAssetsUrl})`,
-          backgroundSize: "520px auto",
-          backgroundPosition: "right -95px bottom -100px",
-        }}
-      >
+      <div className="relative overflow-hidden rounded-2xl border border-blush/45 bg-warm-white/65 p-5">
+        <img
+          aria-hidden="true"
+          src={plannerAssets.butterflyPurple}
+          alt=""
+          className="pointer-events-none absolute -right-4 bottom-1 h-24 w-24 object-contain opacity-20 mix-blend-multiply"
+        />
         <p className="font-script text-4xl leading-tight text-plum-soft">
           {quote}
         </p>
@@ -492,14 +487,13 @@ function ProgressGardenCard({ completed, progress }: { completed: number; progre
 function IdeaGardenCard({ count }: { count: number }) {
   return (
     <RailCard title="Idea Garden" icon={Lightbulb}>
-      <div
-        className="rounded-2xl border border-paper-line bg-warm-white/55 p-4"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,250,243,0.66), rgba(255,250,243,0.76)), url(${plannerAssetsUrl})`,
-          backgroundSize: "430px auto",
-          backgroundPosition: "right -85px bottom -90px",
-        }}
-      >
+      <div className="relative overflow-hidden rounded-2xl border border-paper-line bg-warm-white/65 p-4">
+        <img
+          aria-hidden="true"
+          src={plannerAssets.jarGarden}
+          alt=""
+          className="pointer-events-none absolute -right-3 bottom-2 h-24 w-20 object-contain opacity-30 mix-blend-multiply"
+        />
         <p className="max-w-48 text-sm leading-relaxed text-ink">
           Big ideas are just seeds. We'll let them grow.
         </p>
@@ -574,15 +568,13 @@ function RailCard({
 
 function QuoteStrip({ weeklyFocus }: { weeklyFocus: string }) {
   return (
-    <section
-      className="planner-card grid items-center gap-4 overflow-hidden rounded-2xl px-6 py-5 md:grid-cols-[180px_1fr_320px]"
-      style={{
-        backgroundImage: `linear-gradient(90deg, rgba(255,250,243,0.68), rgba(246,199,215,0.28)), url(${plannerAssetsUrl})`,
-        backgroundSize: "760px auto",
-        backgroundPosition: "left -190px center",
-      }}
-    >
-      <div className="hidden md:block" />
+    <section className="planner-card relative grid items-center gap-4 overflow-hidden rounded-2xl px-6 py-5 md:grid-cols-[180px_1fr_320px]">
+      <img
+        aria-hidden="true"
+        src={plannerAssets.dividerGold}
+        alt=""
+        className="pointer-events-none mx-auto hidden h-12 w-36 object-contain opacity-60 md:block"
+      />
       <p className="text-center font-script text-3xl leading-snug text-plum-soft md:text-4xl">
         You are building more than a brand. You are building a legacy.
       </p>

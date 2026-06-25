@@ -9,6 +9,7 @@ import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPage
 import { TaskDialog } from "@/components/shared/TaskDialog";
 import { TaskTable } from "@/components/shared/TaskTable";
 import { useTasks } from "@/hooks/useTasks";
+import { plannerAssets } from "@/lib/plannerAssets";
 import { areaTypeFor, type TaskItem, type WorkspaceArea } from "@/lib/types";
 
 type AreaTreatment = {
@@ -16,6 +17,8 @@ type AreaTreatment = {
   icon: ComponentType<{ className?: string }>;
   heroClass: string;
   statTints: [string, string, string, string];
+  decorAsset: string;
+  decorClassName?: string;
 };
 
 const WORKSTREAM_TREATMENT: AreaTreatment = {
@@ -23,6 +26,8 @@ const WORKSTREAM_TREATMENT: AreaTreatment = {
   icon: Settings2,
   heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(231,240,237,0.72))]",
   statTints: ["bg-lavender/35", "bg-sage/25", "bg-powder-blue/30", "bg-gold/20"],
+  decorAsset: plannerAssets.goldSparkles,
+  decorClassName: "right-12 top-8 h-24 w-24 opacity-25",
 };
 
 const AREA_TREATMENTS: Partial<Record<WorkspaceArea, AreaTreatment>> = {
@@ -31,30 +36,40 @@ const AREA_TREATMENTS: Partial<Record<WorkspaceArea, AreaTreatment>> = {
     icon: BookOpen,
     heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(246,225,239,0.72))]",
     statTints: ["bg-lavender/45", "bg-gold/25", "bg-blush/35", "bg-primary/10"],
+    decorAsset: plannerAssets.bookJournal,
+    decorClassName: "right-12 top-4 h-32 w-32 rotate-[-5deg] opacity-25",
   },
   Rise: {
     eyebrow: "Rise Studio",
     icon: Flower2,
     heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(250,211,226,0.62))]",
     statTints: ["bg-blush/45", "bg-lavender/35", "bg-gold/20", "bg-priority-high/15"],
+    decorAsset: plannerAssets.floralBouquet,
+    decorClassName: "right-10 top-2 h-32 w-44 opacity-30",
   },
   Land: {
     eyebrow: "Land Studio",
     icon: Mountain,
     heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(191,207,166,0.45))]",
     statTints: ["bg-sage/35", "bg-green-muted/25", "bg-gold/20", "bg-lavender/25"],
+    decorAsset: plannerAssets.leafSage,
+    decorClassName: "right-14 top-4 h-32 w-28 opacity-30",
   },
   Rebuild: {
     eyebrow: "Rebuild Studio",
     icon: Sprout,
     heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(199,228,238,0.55))]",
     statTints: ["bg-powder-blue/40", "bg-sage/25", "bg-lavender/25", "bg-blush/25"],
+    decorAsset: plannerAssets.washBlue,
+    decorClassName: "right-10 top-6 h-32 w-40 opacity-30",
   },
   "Meet at the Heal": {
     eyebrow: "Meet at the Heal",
     icon: HeartHandshake,
     heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(250,211,226,0.5),rgba(217,163,87,0.16))]",
     statTints: ["bg-blush/40", "bg-gold/25", "bg-lavender/30", "bg-sage/20"],
+    decorAsset: plannerAssets.jarGarden,
+    decorClassName: "right-12 top-3 h-36 w-32 opacity-30",
   },
 };
 
@@ -97,6 +112,8 @@ export function AreaPage({ area, blurb }: { area: WorkspaceArea; blurb?: string 
         title={area}
         description={blurb ?? `${typeLabel} tasks, focus, and progress.`}
         className={treatment.heroClass}
+        decorAsset={treatment.decorAsset}
+        decorClassName={treatment.decorClassName}
         actions={
           <Button
             onClick={() => {

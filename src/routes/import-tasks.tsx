@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { PlannerPageHeader } from "@/components/shared/PlannerPageHeader";
 import { useTasks } from "@/hooks/useTasks";
+import { plannerAssets } from "@/lib/plannerAssets";
 import {
   ALL_AREAS,
   PRIORITIES,
@@ -144,6 +145,8 @@ function ImportTasksPage() {
         eyebrow="Task Importer"
         title="Import Tasks"
         description="Upload a local document, review proposed tasks, edit what needs shaping, then choose what gets saved."
+        decorAsset={plannerAssets.bookJournal}
+        decorClassName="right-10 top-4 h-32 w-32 rotate-[-5deg] opacity-25"
         actions={
           status !== "idle" && (
           <Button variant="outline" onClick={resetImport}>

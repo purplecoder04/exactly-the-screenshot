@@ -1,6 +1,6 @@
 import { Bell, Calendar, Heart, Sparkles } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import plannerAssetsUrl from "@/assets/planner/planner-assets.png";
+import { plannerAssets } from "@/lib/plannerAssets";
 
 export function AppHeader() {
   const dateStr = new Intl.DateTimeFormat("en-US", {
@@ -12,14 +12,11 @@ export function AppHeader() {
   return (
     <header className="relative overflow-hidden px-4 pb-5 pt-6 md:px-8 md:pt-8 xl:px-10">
       <div
-        className="pointer-events-none absolute right-20 top-0 hidden h-36 w-[520px] opacity-55 mix-blend-multiply lg:block"
-        style={{
-          backgroundImage: `url(${plannerAssetsUrl})`,
-          backgroundSize: "720px auto",
-          backgroundPosition: "right -70px top -110px",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
+        aria-hidden="true"
+        className="pointer-events-none absolute right-24 top-0 hidden h-36 w-56 opacity-55 mix-blend-multiply lg:block"
+      >
+        <img src={plannerAssets.floralBouquet} alt="" className="h-full w-full object-contain object-right-top" />
+      </div>
       <div className="relative flex items-start justify-between gap-4">
       <div className="flex items-start gap-3">
         <SidebarTrigger className="mt-2 md:hidden" />

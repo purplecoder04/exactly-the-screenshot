@@ -13,6 +13,7 @@ import { AreaPill } from "@/components/shared/AreaPill";
 import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
 import { useTasks } from "@/hooks/useTasks";
 import { useWeeklyNotes } from "@/hooks/useWeeklyData";
+import { plannerAssets } from "@/lib/plannerAssets";
 import { ALL_AREAS, areaTypeFor, type WeeklyNote, type WorkspaceArea } from "@/lib/types";
 
 export const Route = createFileRoute("/weekly-log")({
@@ -61,6 +62,8 @@ function WeeklyLogPage() {
         eyebrow="Weekly Log"
         title="Weekly Log"
         description="Review what bloomed, what rolled over, and the notes you want to carry into the next week."
+        decorAsset={plannerAssets.heartVine}
+        decorClassName="right-10 top-12 h-20 w-56 opacity-30"
         actions={
           <Button
             onClick={() => {
