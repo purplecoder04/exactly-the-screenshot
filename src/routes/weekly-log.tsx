@@ -1,23 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CheckCircle2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { AreaPill } from "@/components/shared/AreaPill";
+import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
 import { useTasks } from "@/hooks/useTasks";
 import { useWeeklyNotes } from "@/hooks/useWeeklyData";
-import { AreaPill } from "@/components/shared/AreaPill";
 import { ALL_AREAS, areaTypeFor, type WeeklyNote, type WorkspaceArea } from "@/lib/types";
 
 export const Route = createFileRoute("/weekly-log")({
   head: () => ({
     meta: [
-      { title: "Weekly Log — Best Collective" },
+      { title: "Weekly Log - Best Collective" },
       { name: "description", content: "Review progress and capture weekly notes." },
     ],
   }),
@@ -27,152 +28,169 @@ export const Route = createFileRoute("/weekly-log")({
 function WeeklyLogPage() {
   const { tasks } = useTasks();
   const { notes, addNote, updateNote, deleteNote } = useWeeklyNotes();
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [editing, setEditing] = useState<WeeklyNote | null>(null);
 
   const completedByDay = useMemo(() => {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const completed = tasks
-      .filter((t) => t.isDone && t.completedAt && new Date(t.completedAt).getTime() >= cutoff)
+      .filter((task) => task.isDone && task.completedAt && new Date(task.completedAt).getTime() >= cutoff)
       .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""));
     const grouped = new Map<string, typeof completed>();
-    for (const t of completed) {
-      const day = (t.completedAt ?? "").slice(0, 10);
+    for (const task of completed) {
+      const day = (task.completedAt ?? "").slice(0, 10);
       if (!grouped.has(day)) grouped.set(day, []);
-      grouped.get(day)!.push(t);
+      grouped.get(day)!.push(task);
     }
     return grouped;
   }, [tasks]);
 
   const rollovers = useMemo(
-    () => tasks.filter((t) => !t.isDone && (t.rolloverCount ?? 0) > 0).sort((a, b) => (b.rolloverCount ?? 0) - (a.rolloverCount ?? 0)),
+    () =>
+      tasks
+        .filter((task) => !task.isDone && (task.rolloverCount ?? 0) > 0)
+        .sort((a, b) => (b.rolloverCount ?? 0) - (a.rolloverCount ?? 0)),
     [tasks],
   );
 
-  const [noteOpen, setNoteOpen] = useState(false);
-  const [editing, setEditing] = useState<WeeklyNote | null>(null);
+  const completedCount = [...completedByDay.values()].reduce((sum, items) => sum + items.length, 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-display text-3xl text-ink">Weekly Log</h2>
-          <p className="text-sm text-muted-foreground">What got done, what's still moving, and your weekly notes.</p>
+      <PlannerPageHeader
+        eyebrow="Weekly Log"
+        title="Weekly Log"
+        description="Review what bloomed, what rolled over, and the notes you want to carry into the next week."
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setNoteOpen(true);
+            }}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add Note
+          </Button>
+        }
+      >
+        <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
+          <WeeklyStat value={completedCount} label="completed this week" />
+          <WeeklyStat value={rollovers.length} label="rollover tasks" />
+          <WeeklyStat value={notes.length} label="weekly notes" />
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setNoteOpen(true);
-          }}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add Note
-        </Button>
-      </div>
+      </PlannerPageHeader>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-plum-deep">
-              <CheckCircle2 className="h-4 w-4 text-green-muted" />
-              Completed — Last 7 Days
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {completedByDay.size === 0 && <p className="text-sm text-muted-foreground">No completions in the last 7 days.</p>}
-            <div className="space-y-4">
+        <PlannerPanel title="Completed - Last 7 Days" description="A quick scan of finished work.">
+          {completedByDay.size === 0 ? (
+            <p className="text-sm text-muted-foreground">No completions in the last 7 days.</p>
+          ) : (
+            <div className="space-y-5">
               {[...completedByDay.entries()].map(([day, items]) => (
                 <div key={day}>
-                  <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                     {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric" }).format(new Date(day))}
                   </div>
-                  <ul className="space-y-1.5">
-                    {items.map((t) => (
-                      <li key={t.id} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-muted" />
-                        <span className="flex-1 text-ink">{t.title}</span>
-                        <AreaPill area={t.branch} />
+                  <ul className="space-y-2">
+                    {items.map((task) => (
+                      <li key={task.id} className="rounded-2xl border border-border/70 bg-card/75 p-3 text-sm">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+                          <span className="min-w-0 flex-1 text-ink break-words">{task.title}</span>
+                          <AreaPill area={task.branch} />
+                        </div>
                       </li>
                     ))}
                   </ul>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </PlannerPanel>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-plum-deep">
-              <RotateCcw className="h-4 w-4 text-priority-high" />
-              Rollovers
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {rollovers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing rolled over. Clean slate.</p>
-            ) : (
-              <ul className="space-y-2">
-                {rollovers.map((t) => (
-                  <li key={t.id} className="flex items-start gap-2 text-sm">
-                    <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-priority-high/20 px-1.5 text-[11px] font-semibold text-priority-high">
-                      ×{t.rolloverCount}
+        <PlannerPanel title="Rollovers" description="Unfinished items that followed you into another day.">
+          {rollovers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing rolled over. Clean slate.</p>
+          ) : (
+            <ul className="space-y-2">
+              {rollovers.map((task) => (
+                <li key={task.id} className="rounded-2xl border border-border/70 bg-card/75 p-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-priority-high/20 px-1.5 text-[11px] font-semibold text-priority-high">
+                      x{task.rolloverCount}
                     </span>
-                    <span className="flex-1 text-ink">{t.title}</span>
-                    <AreaPill area={t.branch} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+                    <span className="min-w-0 flex-1 text-ink break-words">{task.title}</span>
+                    <AreaPill area={task.branch} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </PlannerPanel>
       </div>
 
-      <div>
-        <h3 className="mb-3 font-display text-2xl text-ink">Weekly Notes</h3>
+      <PlannerPanel title="Weekly Notes" description="Capture decisions, lessons, and follow-up thoughts.">
         {notes.length === 0 ? (
           <p className="text-sm text-muted-foreground">No notes yet. Capture what mattered this week.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {notes.map((n) => (
-              <Card key={n.id}>
-                <CardContent className="space-y-2 p-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {notes.map((note) => (
+              <Card key={note.id} className="planner-soft-hover">
+                <CardContent className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-display text-lg text-ink">{n.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(n.date))}
+                    <div className="min-w-0">
+                      <div className="font-display text-xl leading-tight text-ink break-words">{note.title}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(note.date))}
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditing(n); setNoteOpen(true); }}>
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          setEditing(note);
+                          setNoteOpen(true);
+                        }}
+                      >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteNote(n.id)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => deleteNote(note.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
-                  <AreaPill area={n.branch} />
-                  <p className="text-sm text-ink whitespace-pre-wrap">{n.note}</p>
+                  <AreaPill area={note.branch} />
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink break-words">{note.note}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
-      </div>
+      </PlannerPanel>
 
       <NoteDialog
         open={noteOpen}
         onOpenChange={setNoteOpen}
         initial={editing}
-        onSubmit={(d) => {
+        onSubmit={(data) => {
           if (editing) {
-            updateNote(editing.id, { ...d, areaType: areaTypeFor(d.branch) });
+            updateNote(editing.id, { ...data, areaType: areaTypeFor(data.branch) });
             toast.success("Note updated.");
           } else {
-            addNote(d);
+            addNote(data);
             toast.success("Note added.");
           }
         }}
       />
+    </div>
+  );
+}
+
+function WeeklyStat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card/70 p-3">
+      <span className="font-semibold text-ink">{value}</span> {label}
     </div>
   );
 }
@@ -184,9 +202,9 @@ function NoteDialog({
   onSubmit,
 }: {
   open: boolean;
-  onOpenChange: (o: boolean) => void;
+  onOpenChange: (open: boolean) => void;
   initial: WeeklyNote | null;
-  onSubmit: (d: { title: string; branch: WorkspaceArea; note: string; date: string }) => void;
+  onSubmit: (data: { title: string; branch: WorkspaceArea; note: string; date: string }) => void;
 }) {
   const [title, setTitle] = useState("");
   const [branch, setBranch] = useState<WorkspaceArea>("Brand");
@@ -210,30 +228,38 @@ function NoteDialog({
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>Title</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input value={title} onChange={(event) => setTitle(event.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="grid gap-1.5">
               <Label>Branch / Area</Label>
-              <Select value={branch} onValueChange={(v) => setBranch(v as WorkspaceArea)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={branch} onValueChange={(value) => setBranch(value as WorkspaceArea)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {ALL_AREAS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                  {ALL_AREAS.map((area) => (
+                    <SelectItem key={area} value={area}>
+                      {area}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-1.5">
               <Label>Date</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </div>
           </div>
           <div className="grid gap-1.5">
             <Label>Note</Label>
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4} />
+            <Textarea value={note} onChange={(event) => setNote(event.target.value)} rows={4} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={() => {
               if (!title.trim()) return;

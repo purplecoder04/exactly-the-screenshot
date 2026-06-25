@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PlannerPageHeader } from "@/components/shared/PlannerPageHeader";
 import { useTasks } from "@/hooks/useTasks";
 import {
   ALL_AREAS,
@@ -138,34 +139,33 @@ function ImportTasksPage() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-display text-3xl text-ink">Import Tasks</h2>
-          <p className="text-sm text-muted-foreground">
-            Upload a local document, review proposed tasks, then choose what gets saved.
-          </p>
-        </div>
-        {status !== "idle" && (
+    <div className="flex flex-col gap-6">
+      <PlannerPageHeader
+        eyebrow="Task Importer"
+        title="Import Tasks"
+        description="Upload a local document, review proposed tasks, edit what needs shaping, then choose what gets saved."
+        actions={
+          status !== "idle" && (
           <Button variant="outline" onClick={resetImport}>
             <RefreshCcw className="mr-1 h-4 w-4" />
             Import another
           </Button>
-        )}
-      </div>
+          )
+        }
+      />
 
-      <Card>
+      <Card className="planner-card overflow-hidden">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-plum-deep">
+          <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-plum-deep">
             <Upload className="h-4 w-4 text-plum-soft" />
             Document Upload
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="rounded-lg border border-dashed bg-card/70 p-4">
+          <div className="rounded-2xl border border-dashed border-plum-soft/30 bg-card/70 p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex items-start gap-3">
-                <div className="rounded-md bg-lavender/40 p-2 text-plum-deep">
+                <div className="rounded-2xl bg-lavender/40 p-2 text-plum-deep">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
@@ -181,7 +181,7 @@ function ImportTasksPage() {
                 accept=".txt,.md,.docx"
                 disabled={isParsing}
                 onChange={(event) => void handleFile(event.target.files?.[0])}
-                className="max-w-md bg-background"
+                className="max-w-md bg-background/80"
               />
             </div>
           </div>
@@ -212,7 +212,7 @@ function ImportTasksPage() {
       )}
 
       {status === "saved" && (
-        <Card>
+        <Card className="planner-card">
           <CardContent className="flex flex-col gap-4 p-6">
             <div>
               <h3 className="font-display text-2xl text-ink">Import saved</h3>
@@ -252,10 +252,10 @@ function ReviewPanel({
   onSave: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <section className="planner-card flex flex-col gap-4 p-4 md:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-plum-deep">Review Proposed Tasks</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-plum-deep">Review Proposed Tasks</h3>
           <p className="text-sm text-muted-foreground">
             {drafts.length} proposed from {sourceText.length.toLocaleString()} characters. {selectedCount} selected.
           </p>
@@ -267,7 +267,7 @@ function ReviewPanel({
       </div>
 
       {drafts.length === 0 ? (
-        <div className="rounded-lg border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-plum-soft/25 bg-card/70 p-8 text-center text-sm text-muted-foreground">
           No proposed tasks yet.
         </div>
       ) : (
@@ -283,7 +283,7 @@ function ReviewPanel({
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -299,7 +299,7 @@ function TaskReviewCard({
   onRemove: (draftId: string) => void;
 }) {
   return (
-    <Card className={draft.selected ? "bg-card" : "bg-muted/30 opacity-75"}>
+    <Card className={draft.selected ? "planner-soft-hover bg-card/90" : "bg-muted/30 opacity-75"}>
       <CardContent className="flex flex-col gap-4 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <label className="flex items-center gap-2 text-sm font-medium text-ink">
@@ -404,7 +404,7 @@ function TaskReviewCard({
           </Field>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-ink">
+        <label className="flex items-center gap-2 rounded-2xl border border-plum-soft/20 bg-lavender/20 px-3 py-2 text-sm text-ink">
           <Checkbox
             checked={draft.isToday}
             onCheckedChange={(checked) => onUpdate(draft.draftId, { isToday: !!checked })}

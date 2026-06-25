@@ -62,7 +62,7 @@ export function ParkingLotDialog({ open, onOpenChange, initial, onSubmit }: Prop
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
-            {initial?.id ? "Edit Idea" : "Add to Parking Lot"}
+            {initial?.id ? "Edit Idea" : "Plant an Idea"}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">

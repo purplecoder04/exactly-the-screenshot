@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { CalendarMinus, CalendarPlus, Pencil, Trash2 } from "lucide-react";
 import type { TaskItem } from "@/lib/types";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { AreaPill } from "./AreaPill";
@@ -10,6 +10,9 @@ type Props = {
   tasks: TaskItem[];
   onToggle: (id: string) => void;
   onEdit?: (task: TaskItem) => void;
+  onDelete?: (id: string) => void;
+  onMoveToToday?: (id: string) => void;
+  onRemoveFromToday?: (id: string) => void;
   emptyLabel?: string;
 };
 
@@ -17,11 +20,14 @@ export function TaskChecklistCards({
   tasks,
   onToggle,
   onEdit,
+  onDelete,
+  onMoveToToday,
+  onRemoveFromToday,
   emptyLabel = "No tasks yet.",
 }: Props) {
   if (tasks.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-dashed border-plum-soft/25 bg-card/70 p-8 text-center text-sm text-muted-foreground">
         {emptyLabel}
       </div>
     );
@@ -32,7 +38,7 @@ export function TaskChecklistCards({
       {tasks.map((task) => (
         <article
           key={task.id}
-          className="rounded-lg border bg-muted/25 p-3.5 shadow-sm transition-colors hover:bg-muted/35"
+          className="planner-soft-hover rounded-2xl border border-border/80 bg-card/85 p-4 shadow-sm"
         >
           <div className="flex min-w-0 items-start gap-3">
             <Checkbox
@@ -44,23 +50,34 @@ export function TaskChecklistCards({
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <h4
                   className={cn(
-                    "min-w-0 text-sm font-semibold leading-snug text-ink break-words",
+                    "min-w-0 text-base font-semibold leading-snug text-ink break-words",
                     task.isDone && "text-muted-foreground line-through",
                   )}
                 >
                   {task.title}
                 </h4>
-                {onEdit && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 shrink-0 px-2 text-[11px]"
-                    onClick={() => onEdit(task)}
-                  >
-                    <Pencil className="mr-1 h-3 w-3" />
-                    Edit
-                  </Button>
-                )}
+                <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                  {onMoveToToday && !task.isToday && (
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onMoveToToday(task.id)} title="Move to Today">
+                      <CalendarPlus className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {onRemoveFromToday && task.isToday && (
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onRemoveFromToday(task.id)} title="Remove from Today">
+                      <CalendarMinus className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {onEdit && (
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(task)} title="Edit">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onDelete(task.id)} title="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
