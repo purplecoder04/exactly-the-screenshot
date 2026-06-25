@@ -12,31 +12,43 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  Home,
+  BarChart3,
+  BookOpen,
   Calendar,
-  Briefcase,
   FileUp,
   Gem,
-  Heart,
-  Star,
-  Leaf,
-  HeartHandshake,
-  Settings,
-  Smartphone,
   Globe,
   Hash,
-  BarChart3,
-  Crown,
+  Heart,
+  HeartHandshake,
+  Home,
+  Leaf,
+  Library,
+  Lightbulb,
+  Lock,
+  NotebookPen,
+  Plus,
+  Settings,
+  Smartphone,
+  Sparkles,
+  Star,
 } from "lucide-react";
+import plannerAssetsUrl from "@/assets/planner/planner-assets.png";
 
-type NavItem = { title: string; url: string; icon: React.ComponentType<{ className?: string }> };
+type NavItem = {
+  title: string;
+  url?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  disabled?: boolean;
+};
 
 const DASH: NavItem[] = [{ title: "Dashboard", url: "/", icon: Home }];
 
 const TODAY_FOCUS: NavItem[] = [
   { title: "Today", url: "/today", icon: Calendar },
-  { title: "Parking Lot", url: "/parking-lot", icon: Briefcase },
+  { title: "Idea Garden", url: "/parking-lot", icon: Lightbulb },
   { title: "Import Tasks", url: "/import-tasks", icon: FileUp },
+  { title: "Weekly Log", url: "/weekly-log", icon: NotebookPen },
 ];
 
 const CORE: NavItem[] = [
@@ -54,13 +66,18 @@ const WORK: NavItem[] = [
   { title: "Social Media", url: "/social-media", icon: Hash },
 ];
 
-const REVIEW: NavItem[] = [{ title: "Weekly Log", url: "/weekly-log", icon: BarChart3 }];
+const FUTURE: NavItem[] = [
+  { title: "Calendar", icon: Calendar, disabled: true },
+  { title: "Notes", icon: BookOpen, disabled: true },
+  { title: "Resources", icon: Library, disabled: true },
+  { title: "Analytics", icon: BarChart3, disabled: true },
+];
 
 function NavGroup({ label, items, current }: { label?: string; items: NavItem[]; current: string }) {
   return (
     <SidebarGroup>
       {label && (
-        <SidebarGroupLabel className="px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-gold/90">
+        <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
           {label}
         </SidebarGroupLabel>
       )}
@@ -69,21 +86,33 @@ function NavGroup({ label, items, current }: { label?: string; items: NavItem[];
           {items.map((item) => {
             const active = current === item.url;
             return (
-              <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={active}
-                  className={
-                    active
-                      ? "active-nav-pill rounded-md font-medium shadow-[0_2px_10px_rgba(0,0,0,0.18)] hover:active-nav-pill"
-                      : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                  }
-                >
-                  <Link to={item.url} className="flex items-center gap-3">
+              <SidebarMenuItem key={item.title}>
+                {item.disabled || !item.url ? (
+                  <SidebarMenuButton
+                    disabled
+                    className="rounded-xl text-sidebar-foreground/45 opacity-80"
+                    title="Coming soon"
+                  >
                     <item.icon className="h-4 w-4 shrink-0" />
                     <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
+                    <Lock className="ml-auto h-3 w-3 opacity-50" />
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton
+                    asChild
+                    isActive={active}
+                    className={
+                      active
+                        ? "active-nav-pill rounded-xl font-semibold shadow-[0_10px_24px_rgba(75,22,69,0.22)] hover:active-nav-pill"
+                        : "rounded-xl text-sidebar-foreground/85 hover:bg-sidebar-accent/75 hover:text-sidebar-foreground"
+                    }
+                  >
+                    <Link to={item.url} className="flex items-center gap-3">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
             );
           })}
@@ -98,27 +127,60 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border sidebar-gradient">
-      <SidebarHeader className="px-4 pb-4 pt-6">
-        <Link to="/" className="flex flex-col items-center gap-1.5 text-sidebar-foreground">
-          <Crown className="h-7 w-7 text-gold" strokeWidth={1.5} />
-          <div className="text-center font-display text-lg leading-tight tracking-[0.18em]">
-            BEST<br />COLLECTIVE
+      <SidebarHeader className="relative overflow-hidden px-4 pb-4 pt-7">
+        <div
+          className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 opacity-65 mix-blend-multiply"
+          style={{
+            backgroundImage: `url(${plannerAssetsUrl})`,
+            backgroundSize: "340px auto",
+            backgroundPosition: "right top",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        <Link to="/" className="relative flex flex-col items-center gap-1.5 text-sidebar-foreground">
+          <div className="font-display text-3xl italic leading-none text-plum-deep">
+            Best
+          </div>
+          <div className="-mt-1 font-display text-3xl italic leading-none text-plum-deep">
+            Collective
+          </div>
+          <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.28em] text-plum-soft">
+            CEO Studio
           </div>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-1.5">
+      <SidebarContent className="px-2">
         <NavGroup items={DASH} current={current} />
         <NavGroup label="Today & Focus" items={TODAY_FOCUS} current={current} />
         <NavGroup label="Core Branches" items={CORE} current={current} />
         <NavGroup label="Workstreams" items={WORK} current={current} />
-        <NavGroup label="Review" items={REVIEW} current={current} />
+        <NavGroup label="Studio Tools" items={FUTURE} current={current} />
       </SidebarContent>
-      <SidebarFooter className="p-4">
-        <div className="rounded-md border border-gold/60 bg-plum-deep/20 px-4 py-3 text-center font-display italic leading-snug text-gold">
-          <div>One Vision.</div>
-          <div>Many Branches.</div>
-          <div>One Mission.</div>
-          <Heart className="mx-auto mt-1.5 h-3.5 w-3.5 fill-gold text-gold" />
+      <SidebarFooter className="gap-3 p-4">
+        <div
+          className="rounded-2xl border border-blush/60 bg-warm-white/55 px-4 py-5 text-center font-script text-xl leading-snug text-plum-soft shadow-sm"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,250,243,0.78), rgba(255,250,243,0.78)), url(${plannerAssetsUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "left bottom",
+          }}
+        >
+          <div>You don't have</div>
+          <div>to be perfect.</div>
+          <div>You just have to</div>
+          <div>keep going.</div>
+          <Heart className="mx-auto mt-2 h-4 w-4 fill-blush text-orchid" />
+        </div>
+        <Link
+          to="/import-tasks"
+          className="active-nav-pill inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-[0_12px_26px_rgba(75,22,69,0.24)]"
+        >
+          <Plus className="h-4 w-4" />
+          Quick Capture
+          <Sparkles className="h-3.5 w-3.5 text-gold" />
+        </Link>
+        <div className="text-center text-[10px] uppercase tracking-[0.24em] text-plum-soft/70">
+          One Vision. Many Branches.
         </div>
       </SidebarFooter>
     </Sidebar>

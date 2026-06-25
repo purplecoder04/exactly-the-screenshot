@@ -1,8 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { toast } from "sonner";
+import {
+  ArrowRight,
+  BookOpen,
+  Brain,
+  Calendar,
+  Camera,
+  CheckSquare2,
+  Coffee,
+  Crown,
+  FilePlus2,
+  Flower2,
+  Heart,
+  Library,
+  Lightbulb,
+  Monitor,
+  NotebookPen,
+  Play,
+  Plus,
+  Sparkles,
+  Star,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,197 +34,205 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, ArrowRight, ClipboardList, Briefcase, FileUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { useTasks } from "@/hooks/useTasks";
 import { useParkingLot } from "@/hooks/useParkingLot";
 import { useWeeklyFocus, useReminder } from "@/hooks/useWeeklyData";
-import { TodaysBig3Card } from "@/components/dashboard/TodaysBig3Card";
-import { WeekFocusCard } from "@/components/dashboard/WeekFocusCard";
-import { QuickStatusCard } from "@/components/dashboard/QuickStatusCard";
-import { FounderReminderCard } from "@/components/dashboard/FounderReminderCard";
-import { RecentProgressCard } from "@/components/dashboard/RecentProgressCard";
-import { OverdueWaitingCard } from "@/components/dashboard/OverdueWaitingCard";
-import { AtAGlanceCard } from "@/components/dashboard/AtAGlanceCard";
-import { StatusKeyCard, PriorityKeyCard, HowToUseCard } from "@/components/dashboard/RightRailCards";
-import { QuoteStripFooter } from "@/components/dashboard/QuoteStripFooter";
-import { TaskChecklistCards } from "@/components/shared/TaskChecklistCards";
 import { PriorityBadge, StatusBadge } from "@/components/shared/Badges";
 import { AreaPill } from "@/components/shared/AreaPill";
 import { TaskDialog } from "@/components/shared/TaskDialog";
-import type { TaskItem } from "@/lib/types";
+import { ParkingLotDialog } from "@/components/shared/ParkingLotDialog";
+import { cn } from "@/lib/utils";
+import type { TaskItem, WorkspaceArea } from "@/lib/types";
+import plannerAssetsUrl from "@/assets/planner/planner-assets.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Best Collective CEO" },
-      { name: "description", content: "Your command center for Best Collective. See today, focus, and progress at a glance." },
+      { title: "Dashboard - Best Collective CEO" },
+      { name: "description", content: "A premium creative CEO planner for Best Collective." },
       { property: "og:title", content: "Best Collective CEO Dashboard" },
-      { property: "og:description", content: "Your command center for Best Collective." },
+      { property: "og:description", content: "Your creative CEO studio and daily planner." },
     ],
   }),
   component: Dashboard,
 });
 
-function Dashboard() {
-  const { tasks, addTask, updateTask, toggleDone, moveToToday, endDayRollover, stats } = useTasks();
-  const { items: parkingLot } = useParkingLot();
-  const { focus, updateValue } = useWeeklyFocus();
-  const { reminder, setReminder } = useReminder();
+const AREA_ROUTES: Record<WorkspaceArea, string> = {
+  Brand: "/brand",
+  Rise: "/rise",
+  Land: "/land",
+  Rebuild: "/rebuild",
+  "Meet at the Heal": "/meet-at-the-heal",
+  "Kit Factory App": "/kit-factory-app",
+  "Social Media App": "/social-media-app",
+  Website: "/website",
+  "Social Media": "/social-media",
+};
 
-  const [addOpen, setAddOpen] = useState(false);
+const PROJECTS = [
+  {
+    area: "Brand" as WorkspaceArea,
+    subtitle: "Building the foundation",
+    percent: 68,
+    accent: "from-plum-soft to-orchid",
+    art: "book",
+  },
+  {
+    area: "Rise" as WorkspaceArea,
+    subtitle: "Empowering women",
+    percent: 74,
+    accent: "from-orchid to-blush",
+    art: "flower",
+  },
+  {
+    area: "Land" as WorkspaceArea,
+    subtitle: "Helping men lead",
+    percent: 52,
+    accent: "from-green-muted to-sage",
+    art: "leaf",
+  },
+  {
+    area: "Rebuild" as WorkspaceArea,
+    subtitle: "Starting over strong",
+    percent: 41,
+    accent: "from-powder-blue to-green-muted",
+    art: "calm",
+  },
+  {
+    area: "Meet at the Heal" as WorkspaceArea,
+    subtitle: "Healing relationships",
+    percent: 63,
+    accent: "from-plum-soft to-gold",
+    art: "tea",
+  },
+];
+
+const WORKSPACES = [
+  { title: "CEO Studio", url: "/", icon: Crown, tint: "text-plum-soft bg-lavender/35" },
+  { title: "Workbook Studio", url: "/rise", icon: BookOpen, tint: "text-orchid bg-blush/25" },
+  { title: "Content Studio", url: "/social-media", icon: Camera, tint: "text-gold bg-gold/20" },
+  { title: "Website Studio", url: "/website", icon: Monitor, tint: "text-powder-blue bg-powder-blue/30" },
+  { title: "Resource Library", url: "/weekly-log", icon: Library, tint: "text-green-muted bg-sage/45" },
+];
+
+function Dashboard() {
+  const { tasks, addTask, updateTask, toggleDone, endDayRollover, stats } = useTasks();
+  const { items: ideas, addItem } = useParkingLot();
+  const { focus } = useWeeklyFocus();
+  const { reminder } = useReminder();
+
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [ideaOpen, setIdeaOpen] = useState(false);
   const [editing, setEditing] = useState<TaskItem | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
-  const todayTasks = useMemo(() => tasks.filter((t) => t.isToday).slice(0, 5), [tasks]);
-  const parkingPreview = parkingLot.slice(0, 5);
+  const todayTasks = useMemo(
+    () =>
+      [...tasks.filter((t) => t.isToday)].sort((a, b) => {
+        const rank = (task: TaskItem) => (task.priority === "High" ? 3 : task.priority === "Medium" ? 2 : 1);
+        return rank(b) - rank(a);
+      }),
+    [tasks],
+  );
 
-  const tiles = [
-    { label: "Active Projects", value: stats.active, tint: "bg-lavender/40" },
-    { label: "In Progress", value: stats.inProgress, tint: "bg-blush/40" },
-    { label: "Waiting", value: stats.waiting, tint: "bg-status-waiting/25" },
-    { label: "Testing", value: stats.testing, tint: "bg-status-testing/25" },
-    { label: "Completed", value: stats.completed, tint: "bg-green-muted/30" },
-    { label: "Ideas in Parking Lot", value: parkingLot.length, tint: "bg-gold/25" },
-  ];
+  const missionTasks = todayTasks.slice(0, 3);
+  const continueTask = todayTasks[0] ?? tasks.find((task) => !task.isDone) ?? tasks[0];
+  const completedThisMonth = tasks.filter((task) => task.isDone).length;
+  const gardenProgress = Math.min(100, Math.round((completedThisMonth / Math.max(tasks.length, 1)) * 100));
+  const weeklyFocusLine = focus.map((item) => item.value).filter(Boolean).slice(0, 4).join(" • ");
+
+  const openTask = (task?: TaskItem) => {
+    setEditing(task ?? null);
+    setTaskOpen(true);
+  };
 
   return (
-    <div className="space-y-5">
-      {/* Top row: Big 3, Week Focus, Quick Status, Founder Reminder */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <TodaysBig3Card tasks={tasks} />
-        <WeekFocusCard focus={focus} onUpdate={updateValue} />
-        <QuickStatusCard tasks={tasks} />
-        <FounderReminderCard reminder={reminder} onChange={setReminder} />
-      </div>
-
-      {/* Middle row: Recent, Overdue, AtAGlance, Right rail keys */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <RecentProgressCard tasks={tasks} />
-        <OverdueWaitingCard tasks={tasks} onMoveToToday={moveToToday} />
-        <AtAGlanceCard tiles={tiles} />
-        <div className="space-y-4">
-          <StatusKeyCard />
-          <PriorityKeyCard />
-        </div>
-      </div>
-
-      {/* Bottom row: Today checklist + Parking lot preview + How To Use */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-plum-deep">
-              <ClipboardList className="h-4 w-4 text-plum-soft" />
-              Today — Daily CEO Checklist
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TaskChecklistCards
-              tasks={todayTasks}
-              onToggle={toggleDone}
-              onEdit={(task) => {
-                setEditing(task);
-                setAddOpen(true);
-              }}
-              emptyLabel="Nothing for today yet."
-            />
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditing(null);
-                  setAddOpen(true);
-                }}
-              >
-                <Plus className="mr-1 h-4 w-4" /> Add Task
-              </Button>
-              <Button size="sm" variant="default" onClick={() => setConfirmEnd(true)}>
-                End Day & Rollover
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link to="/import-tasks">
-                  <FileUp className="mr-1 h-4 w-4" />
-                  Import Tasks
-                </Link>
-              </Button>
+    <div className="space-y-5 pb-4">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_370px]">
+        <div className="space-y-5">
+          <PlannerSection
+            title="Today's Mission"
+            subtitle="Focus on your Top 3 and make the day count."
+            action={
+              <Link to="/today" className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft hover:text-plum-deep">
+                View All Tasks <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            }
+          >
+            <div className="grid gap-3 lg:grid-cols-3">
+              {[0, 1, 2].map((index) => (
+                <MissionTaskCard
+                  key={missionTasks[index]?.id ?? index}
+                  index={index}
+                  task={missionTasks[index]}
+                  onToggle={toggleDone}
+                  onEdit={openTask}
+                />
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </PlannerSection>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-plum-deep">
-              <Briefcase className="h-4 w-4 text-plum-soft" />
-              Parking Lot — All Ideas Go Here
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {parkingPreview.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No ideas parked yet.</p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full min-w-[760px] table-fixed text-[13px]">
-                  <colgroup>
-                    <col className="w-[34%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[16%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                  </colgroup>
-                  <thead className="bg-primary text-primary-foreground">
-                    <tr className="text-left">
-                      <th className="px-4 py-3 font-medium">Idea</th>
-                      <th className="px-4 py-3 font-medium">Branch / Area</th>
-                      <th className="px-4 py-3 font-medium">Type</th>
-                      <th className="px-4 py-3 font-medium">Decision</th>
-                      <th className="px-4 py-3 font-medium">Priority</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {parkingPreview.map((p) => (
-                      <tr key={p.id} className="border-t align-top">
-                        <td className="px-4 py-3.5 text-sm font-medium leading-relaxed text-ink break-words">
-                          {p.idea}
-                        </td>
-                        <td className="px-4 py-3.5"><AreaPill area={p.branch} /></td>
-                        <td className="px-4 py-3.5 text-muted-foreground break-words">{p.type}</td>
-                        <td className="px-4 py-3.5"><StatusBadge status="Idea" /></td>
-                        <td className="px-4 py-3.5"><PriorityBadge priority={p.priority} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <Link to="/parking-lot" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-plum-soft hover:text-plum-deep">
-              Go to Parking Lot <ArrowRight className="h-3 w-3" />
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_0.9fr]">
+            <ContinueWorkingCard task={continueTask} />
+            <WorkspacesCard />
+          </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="lg:col-span-4">
-          <HowToUseCard />
+          <PlannerSection
+            title="Projects at a Glance"
+            subtitle="A soft scan of the branches you are tending."
+            action={
+              <Link to="/brand" className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft hover:text-plum-deep">
+                See all projects <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            }
+          >
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              {PROJECTS.map((project) => (
+                <ProjectCard key={project.area} project={project} />
+              ))}
+            </div>
+          </PlannerSection>
         </div>
+
+        <aside className="space-y-4">
+          <DailyInspirationCard reminder={reminder} />
+          <ProgressGardenCard completed={completedThisMonth} progress={gardenProgress} />
+          <IdeaGardenCard count={ideas.length} />
+          <QuickActions
+            onNewTask={() => openTask()}
+            onNewIdea={() => setIdeaOpen(true)}
+          />
+        </aside>
       </div>
 
-      <QuoteStripFooter />
+      <QuoteStrip weeklyFocus={weeklyFocusLine} />
 
       <TaskDialog
-        open={addOpen}
+        open={taskOpen}
         onOpenChange={(open) => {
-          setAddOpen(open);
+          setTaskOpen(open);
           if (!open) setEditing(null);
         }}
         initial={editing ?? { isToday: true }}
-        onSubmit={(d) => {
+        onSubmit={(data) => {
           if (editing) {
-            updateTask(editing.id, d);
+            updateTask(editing.id, data);
             toast.success("Task updated.");
           } else {
-            addTask(d);
+            addTask(data);
             toast.success("Task added to Today.");
           }
+        }}
+      />
+
+      <ParkingLotDialog
+        open={ideaOpen}
+        onOpenChange={setIdeaOpen}
+        onSubmit={(data) => {
+          addItem(data);
+          toast.success("Idea planted.");
         }}
       />
 
@@ -229,5 +258,338 @@ function Dashboard() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function PlannerSection({
+  title,
+  subtitle,
+  action,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="planner-card rounded-2xl p-4 md:p-5">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-ink">
+            <Sparkles className="h-4 w-4 text-gold" />
+            {title}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function MissionTaskCard({
+  index,
+  task,
+  onToggle,
+  onEdit,
+}: {
+  index: number;
+  task?: TaskItem;
+  onToggle: (id: string) => void;
+  onEdit: (task?: TaskItem) => void;
+}) {
+  if (!task) {
+    return (
+      <button
+        className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-blush/70 bg-warm-white/60 p-4 text-center text-sm text-muted-foreground transition hover:-translate-y-0.5 hover:bg-blush/10"
+        onClick={() => onEdit()}
+      >
+        <Plus className="mb-2 h-5 w-5 text-plum-soft" />
+        Add a mission task
+      </button>
+    );
+  }
+
+  return (
+    <Card className="group relative min-h-36 overflow-hidden border-paper-line bg-warm-white/85 transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(90,48,73,0.14)]">
+      <div
+        className="pointer-events-none absolute -left-12 -top-20 h-48 w-48 opacity-55 mix-blend-multiply transition group-hover:opacity-70"
+        style={{
+          backgroundImage: `url(${plannerAssetsUrl})`,
+          backgroundSize: "420px auto",
+          backgroundPosition: `${index * 34}% ${index === 0 ? "20%" : "40%"}`,
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <CardContent className="relative flex h-full flex-col gap-3 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-plum-soft text-sm font-bold text-white shadow-sm">
+            {index + 1}
+          </span>
+          <button
+            className="rounded-full p-1 text-gold transition hover:bg-gold/15"
+            title="Mark complete"
+            onClick={() => onToggle(task.id)}
+          >
+            <Star className={cn("h-5 w-5", task.isDone && "fill-gold")} strokeWidth={1.4} />
+          </button>
+        </div>
+        <button className="text-left" onClick={() => onEdit(task)}>
+          <h3 className={cn("font-display text-xl font-semibold leading-snug text-ink", task.isDone && "line-through opacity-60")}>
+            {task.title}
+          </h3>
+        </button>
+        <div className="mt-auto flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">{task.project ?? task.branch}</span>
+          <PriorityBadge priority={task.priority} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ContinueWorkingCard({ task }: { task?: TaskItem }) {
+  const areaUrl = task ? AREA_ROUTES[task.branch] : "/today";
+  return (
+    <section className="planner-card overflow-hidden rounded-2xl p-4 md:p-5">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-ink">
+        <Sparkles className="h-4 w-4 text-gold" />
+        Continue Working
+      </h2>
+      <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+        <div
+          className="min-h-56 rounded-2xl border border-blush/50 bg-blush/20 shadow-inner"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,247,238,0.16), rgba(255,247,238,0.16)), url(${plannerAssetsUrl})`,
+            backgroundSize: "520px auto",
+            backgroundPosition: "left -55px top -42px",
+          }}
+        />
+        <div className="flex flex-col justify-center gap-3">
+          <div>
+            <h3 className="font-display text-3xl leading-tight text-ink">
+              {task?.project ?? task?.title ?? "Choose your next beautiful thing"}
+            </h3>
+            <p className="mt-1 text-sm font-semibold text-plum-soft">{task?.type ?? "Creative Project"}</p>
+            <p className="text-sm text-muted-foreground">{task?.nextStep || "Open the studio and keep moving."}</p>
+          </div>
+          <div className="space-y-2">
+            <Progress value={70} className="h-2 bg-blush/35" />
+            <p className="text-xs font-semibold text-ink/75">70% Complete</p>
+          </div>
+          <Button asChild className="w-fit">
+            <a href={areaUrl}>
+              <Play className="h-4 w-4 fill-current" />
+              Continue Working
+            </a>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WorkspacesCard() {
+  return (
+    <section className="planner-card rounded-2xl p-4 md:p-5">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-ink">
+        <Sparkles className="h-4 w-4 text-gold" />
+        Your Workspaces
+      </h2>
+      <div className="grid grid-cols-2 gap-3">
+        {WORKSPACES.map((workspace) => (
+          <a
+            key={workspace.title}
+            href={workspace.url}
+            className="flex min-h-28 flex-col items-center justify-center rounded-2xl border border-paper-line bg-warm-white/70 p-3 text-center text-xs font-semibold text-ink transition hover:-translate-y-0.5 hover:border-blush hover:shadow-sm"
+          >
+            <span className={cn("mb-2 rounded-xl p-3", workspace.tint)}>
+              <workspace.icon className="h-6 w-6" strokeWidth={1.4} />
+            </span>
+            {workspace.title}
+          </a>
+        ))}
+        <button
+          className="flex min-h-28 flex-col items-center justify-center rounded-2xl border border-dashed border-gold/70 bg-warm-white/45 p-3 text-center text-xs font-semibold text-ink transition hover:-translate-y-0.5 hover:bg-gold/10"
+          onClick={() => toast.info("New workspace planning is coming soon.")}
+        >
+          <Plus className="mb-2 h-6 w-6 text-plum-soft" />
+          New Workspace
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
+  return (
+    <a
+      href={AREA_ROUTES[project.area]}
+      className="relative overflow-hidden rounded-2xl border border-paper-line bg-warm-white/75 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(90,48,73,0.12)]"
+    >
+      <div
+        className="pointer-events-none absolute -right-12 -top-14 h-32 w-32 opacity-50 mix-blend-multiply"
+        style={{
+          backgroundImage: `url(${plannerAssetsUrl})`,
+          backgroundSize: "360px auto",
+          backgroundPosition: project.art === "book" ? "left top" : project.art === "tea" ? "right bottom" : "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <div className="relative">
+        <h3 className="font-display text-xl font-semibold text-ink">{project.area}</h3>
+        <p className="mt-1 min-h-8 text-xs text-muted-foreground">{project.subtitle}</p>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-blush/30">
+          <div className={cn("h-full rounded-full bg-gradient-to-r", project.accent)} style={{ width: `${project.percent}%` }} />
+        </div>
+        <div className="mt-1 text-right text-[11px] font-semibold text-ink/75">{project.percent}%</div>
+      </div>
+    </a>
+  );
+}
+
+function DailyInspirationCard({ reminder }: { reminder: string }) {
+  const quote = reminder.split("\n").filter(Boolean)[0] ?? "Girl... Build the simple version first.";
+  return (
+    <RailCard title="Daily Inspiration" icon={Sparkles} className="min-h-60">
+      <div
+        className="rounded-2xl border border-blush/45 bg-warm-white/55 p-5"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,250,243,0.58), rgba(255,250,243,0.78)), url(${plannerAssetsUrl})`,
+          backgroundSize: "520px auto",
+          backgroundPosition: "right -95px bottom -100px",
+        }}
+      >
+        <p className="font-script text-4xl leading-tight text-plum-soft">
+          {quote}
+        </p>
+        <Heart className="mt-5 h-5 w-5 fill-transparent text-orchid" strokeWidth={1.3} />
+      </div>
+    </RailCard>
+  );
+}
+
+function ProgressGardenCard({ completed, progress }: { completed: number; progress: number }) {
+  return (
+    <RailCard title="Progress Garden" icon={Flower2}>
+      <div className="grid grid-cols-[1fr_120px] items-center gap-3">
+        <p className="text-sm leading-relaxed text-ink">
+          Every step you take helps something grow.
+        </p>
+        <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-[conic-gradient(var(--orchid)_0deg,var(--blush)_var(--progress),rgba(246,199,215,0.26)_0deg)] p-2" style={{ "--progress": `${progress * 3.6}deg` } as CSSProperties}>
+          <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-warm-white text-center shadow-inner">
+            <span className="text-3xl font-bold text-ink">{completed}</span>
+            <span className="text-[10px] font-semibold text-muted-foreground">Tasks Bloomed</span>
+          </div>
+        </div>
+      </div>
+    </RailCard>
+  );
+}
+
+function IdeaGardenCard({ count }: { count: number }) {
+  return (
+    <RailCard title="Idea Garden" icon={Lightbulb}>
+      <div
+        className="rounded-2xl border border-paper-line bg-warm-white/55 p-4"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,250,243,0.66), rgba(255,250,243,0.76)), url(${plannerAssetsUrl})`,
+          backgroundSize: "430px auto",
+          backgroundPosition: "right -85px bottom -90px",
+        }}
+      >
+        <p className="max-w-48 text-sm leading-relaxed text-ink">
+          Big ideas are just seeds. We'll let them grow.
+        </p>
+        <div className="mt-5 flex items-end justify-between">
+          <div>
+            <div className="font-display text-3xl font-semibold text-plum-soft">{count}</div>
+            <div className="text-xs font-semibold text-muted-foreground">Ideas Planted</div>
+          </div>
+          <Link to="/parking-lot" className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft">
+            See Garden <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </div>
+    </RailCard>
+  );
+}
+
+function QuickActions({
+  onNewTask,
+  onNewIdea,
+}: {
+  onNewTask: () => void;
+  onNewIdea: () => void;
+}) {
+  const actions = [
+    { label: "New Task", icon: CheckSquare2, onClick: onNewTask },
+    { label: "New Note", icon: NotebookPen, onClick: () => toast.info("Weekly note capture is getting its planner pass in Stage 2.") },
+    { label: "Schedule", icon: Calendar, onClick: () => toast.info("Schedule is a future studio tool.") },
+    { label: "Brain Dump", icon: Brain, onClick: () => toast.info("Brain Dump is a future studio tool.") },
+    { label: "Add Idea", icon: FilePlus2, onClick: onNewIdea },
+  ];
+
+  return (
+    <RailCard title="Quick Actions" icon={Sparkles}>
+      <div className="grid grid-cols-5 gap-2">
+        {actions.map((action) => (
+          <button
+            key={action.label}
+            className="flex min-h-20 flex-col items-center justify-center rounded-xl border border-paper-line bg-warm-white/65 p-2 text-center text-[11px] font-semibold text-ink transition hover:-translate-y-0.5 hover:border-blush hover:bg-blush/10"
+            onClick={action.onClick}
+          >
+            <action.icon className="mb-2 h-5 w-5 text-plum-soft" strokeWidth={1.4} />
+            {action.label}
+          </button>
+        ))}
+      </div>
+    </RailCard>
+  );
+}
+
+function RailCard({
+  title,
+  icon: Icon,
+  className,
+  children,
+}: {
+  title: string;
+  icon: ComponentType<{ className?: string }>;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={cn("planner-card rounded-2xl p-4", className)}>
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-ink">
+        <Icon className="h-4 w-4 text-gold" />
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function QuoteStrip({ weeklyFocus }: { weeklyFocus: string }) {
+  return (
+    <section
+      className="planner-card grid items-center gap-4 overflow-hidden rounded-2xl px-6 py-5 md:grid-cols-[180px_1fr_320px]"
+      style={{
+        backgroundImage: `linear-gradient(90deg, rgba(255,250,243,0.68), rgba(246,199,215,0.28)), url(${plannerAssetsUrl})`,
+        backgroundSize: "760px auto",
+        backgroundPosition: "left -190px center",
+      }}
+    >
+      <div className="hidden md:block" />
+      <p className="text-center font-script text-3xl leading-snug text-plum-soft md:text-4xl">
+        You are building more than a brand. You are building a legacy.
+      </p>
+      <div className="rounded-2xl border border-blush/60 bg-warm-white/72 p-4 shadow-sm">
+        <div className="text-sm font-semibold text-plum-deep">This Week's Focus</div>
+        <div className="mt-1 text-sm text-ink">{weeklyFocus || "Build • Create • Serve • Impact"}</div>
+      </div>
+    </section>
   );
 }
