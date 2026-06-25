@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target } from "lucide-react";
 import type { WeeklyFocus } from "@/lib/types";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export function WeekFocusCard({
   focus,
@@ -18,14 +18,17 @@ export function WeekFocusCard({
           This Week's Focus
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="flex flex-col gap-3">
         {focus.map((f) => (
-          <div key={f.id} className="grid grid-cols-[120px_1fr] items-center gap-2 text-sm">
-            <span className="text-muted-foreground">{f.label}:</span>
-            <Input
+          <div key={f.id} className="flex min-w-0 flex-col gap-1 text-sm">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground break-words">
+              {f.label}
+            </span>
+            <Textarea
               value={f.value}
               onChange={(e) => onUpdate(f.id, e.target.value)}
-              className="h-8 border-transparent bg-transparent px-1.5 font-medium text-ink shadow-none hover:border-border focus-visible:border-input"
+              rows={1}
+              className="min-h-10 resize-none border-transparent bg-transparent px-1.5 py-1 text-sm font-medium leading-snug text-ink shadow-none [field-sizing:content] hover:border-border focus-visible:border-input"
             />
           </div>
         ))}

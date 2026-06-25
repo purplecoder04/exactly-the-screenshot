@@ -16,7 +16,7 @@ import { PARKING_LOT_DECISIONS } from "@/lib/types";
 export const Route = createFileRoute("/parking-lot")({
   head: () => ({
     meta: [
-      { title: "Parking Lot — Best Collective" },
+      { title: "Parking Lot - Best Collective" },
       { name: "description", content: "All ideas go here. Decide later." },
     ],
   }),
@@ -62,7 +62,9 @@ function ParkingLotPage() {
       <div className="flex flex-wrap items-center gap-2">
         <FilterBar value={{ ...filters, status: "all" }} onChange={(f) => setFilters({ ...f, status: "all" })} />
         <Select value={decisionFilter} onValueChange={setDecisionFilter}>
-          <SelectTrigger className="h-9 w-[160px] bg-card"><SelectValue placeholder="Decision" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[160px] bg-card">
+            <SelectValue placeholder="Decision" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All decisions</SelectItem>
             {PARKING_LOT_DECISIONS.map((d) => (
@@ -72,34 +74,54 @@ function ParkingLotPage() {
         </Select>
       </div>
 
-      <div className="overflow-hidden rounded-lg border bg-card">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-lg border bg-card">
+        <table className="w-full min-w-[1060px] table-fixed text-[13px]">
+          <colgroup>
+            <col className="w-[26%]" />
+            <col className="w-[15%]" />
+            <col className="w-[11%]" />
+            <col className="w-[10%]" />
+            <col className="w-[10%]" />
+            <col className="w-[16%]" />
+            <col className="w-[8%]" />
+            <col className="w-32" />
+          </colgroup>
           <thead className="bg-primary text-primary-foreground">
             <tr className="text-left">
-              <th className="px-3 py-2.5 font-medium">Idea</th>
-              <th className="px-3 py-2.5 font-medium">Branch / Area</th>
-              <th className="px-3 py-2.5 font-medium">Type</th>
-              <th className="px-3 py-2.5 font-medium">Priority</th>
-              <th className="px-3 py-2.5 font-medium">Decision</th>
-              <th className="px-3 py-2.5 font-medium">Notes</th>
-              <th className="px-3 py-2.5 font-medium">Created</th>
-              <th className="w-32 px-3 py-2.5"></th>
+              <th className="px-4 py-3 font-medium">Idea</th>
+              <th className="px-4 py-3 font-medium">Branch / Area</th>
+              <th className="px-4 py-3 font-medium">Type</th>
+              <th className="px-4 py-3 font-medium">Priority</th>
+              <th className="px-4 py-3 font-medium">Decision</th>
+              <th className="px-4 py-3 font-medium">Notes</th>
+              <th className="px-4 py-3 font-medium">Created</th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">No ideas match.</td></tr>
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                  No ideas match.
+                </td>
+              </tr>
             )}
             {filtered.map((p) => (
-              <tr key={p.id} className="border-t hover:bg-muted/40">
-                <td className="px-3 py-2 font-medium">{p.idea}</td>
-                <td className="px-3 py-2"><AreaPill area={p.branch} /></td>
-                <td className="px-3 py-2 text-muted-foreground">{p.type}</td>
-                <td className="px-3 py-2"><PriorityBadge priority={p.priority} /></td>
-                <td className="px-3 py-2"><DecisionBadge decision={p.decision} /></td>
-                <td className="px-3 py-2 max-w-[14rem] truncate text-muted-foreground">{p.notes || "—"}</td>
-                <td className="px-3 py-2 text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()}</td>
-                <td className="px-3 py-2">
+              <tr key={p.id} className="border-t align-top hover:bg-muted/40">
+                <td className="px-4 py-3.5 text-sm font-medium leading-relaxed text-ink break-words">
+                  {p.idea}
+                </td>
+                <td className="px-4 py-3.5"><AreaPill area={p.branch} /></td>
+                <td className="px-4 py-3.5 text-muted-foreground break-words">{p.type}</td>
+                <td className="px-4 py-3.5"><PriorityBadge priority={p.priority} /></td>
+                <td className="px-4 py-3.5"><DecisionBadge decision={p.decision} /></td>
+                <td className="px-4 py-3.5 text-xs leading-relaxed text-muted-foreground break-words">
+                  {p.notes || "-"}
+                </td>
+                <td className="px-4 py-3.5 text-muted-foreground">
+                  {new Date(p.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3.5">
                   <div className="flex justify-end gap-1">
                     <Button
                       size="icon"

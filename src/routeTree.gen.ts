@@ -20,6 +20,7 @@ import { Route as ParkingLotRouteImport } from './routes/parking-lot'
 import { Route as MeetAtTheHealRouteImport } from './routes/meet-at-the-heal'
 import { Route as LandRouteImport } from './routes/land'
 import { Route as KitFactoryAppRouteImport } from './routes/kit-factory-app'
+import { Route as ImportTasksRouteImport } from './routes/import-tasks'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -78,6 +79,11 @@ const KitFactoryAppRoute = KitFactoryAppRouteImport.update({
   path: '/kit-factory-app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImportTasksRoute = ImportTasksRouteImport.update({
+  id: '/import-tasks',
+  path: '/import-tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrandRoute = BrandRouteImport.update({
   id: '/brand',
   path: '/brand',
@@ -92,6 +98,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
+  '/import-tasks': typeof ImportTasksRoute
   '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
+  '/import-tasks': typeof ImportTasksRoute
   '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/brand': typeof BrandRoute
+  '/import-tasks': typeof ImportTasksRoute
   '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/brand'
+    | '/import-tasks'
     | '/kit-factory-app'
     | '/land'
     | '/meet-at-the-heal'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/brand'
+    | '/import-tasks'
     | '/kit-factory-app'
     | '/land'
     | '/meet-at-the-heal'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/brand'
+    | '/import-tasks'
     | '/kit-factory-app'
     | '/land'
     | '/meet-at-the-heal'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrandRoute: typeof BrandRoute
+  ImportTasksRoute: typeof ImportTasksRoute
   KitFactoryAppRoute: typeof KitFactoryAppRoute
   LandRoute: typeof LandRoute
   MeetAtTheHealRoute: typeof MeetAtTheHealRoute
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KitFactoryAppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/import-tasks': {
+      id: '/import-tasks'
+      path: '/import-tasks'
+      fullPath: '/import-tasks'
+      preLoaderRoute: typeof ImportTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/brand': {
       id: '/brand'
       path: '/brand'
@@ -298,6 +318,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrandRoute: BrandRoute,
+  ImportTasksRoute: ImportTasksRoute,
   KitFactoryAppRoute: KitFactoryAppRoute,
   LandRoute: LandRoute,
   MeetAtTheHealRoute: MeetAtTheHealRoute,
@@ -313,3 +334,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, ArrowRight, ClipboardList, Briefcase } from "lucide-react";
+import { Plus, ArrowRight, ClipboardList, Briefcase, FileUp } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { useParkingLot } from "@/hooks/useParkingLot";
 import { useWeeklyFocus, useReminder } from "@/hooks/useWeeklyData";
@@ -26,10 +26,11 @@ import { OverdueWaitingCard } from "@/components/dashboard/OverdueWaitingCard";
 import { AtAGlanceCard } from "@/components/dashboard/AtAGlanceCard";
 import { StatusKeyCard, PriorityKeyCard, HowToUseCard } from "@/components/dashboard/RightRailCards";
 import { QuoteStripFooter } from "@/components/dashboard/QuoteStripFooter";
-import { TaskTable } from "@/components/shared/TaskTable";
+import { TaskChecklistCards } from "@/components/shared/TaskChecklistCards";
 import { PriorityBadge, StatusBadge } from "@/components/shared/Badges";
 import { AreaPill } from "@/components/shared/AreaPill";
 import { TaskDialog } from "@/components/shared/TaskDialog";
+import type { TaskItem } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,12 +45,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const { tasks, addTask, toggleDone, moveToToday, endDayRollover, stats } = useTasks();
+  const { tasks, addTask, updateTask, toggleDone, moveToToday, endDayRollover, stats } = useTasks();
   const { items: parkingLot } = useParkingLot();
   const { focus, updateValue } = useWeeklyFocus();
   const { reminder, setReminder } = useReminder();
 
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<TaskItem | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
   const todayTasks = useMemo(() => tasks.filter((t) => t.isToday).slice(0, 5), [tasks]);
@@ -95,17 +97,33 @@ function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <TaskTable
+            <TaskChecklistCards
               tasks={todayTasks}
               onToggle={toggleDone}
+              onEdit={(task) => {
+                setEditing(task);
+                setAddOpen(true);
+              }}
               emptyLabel="Nothing for today yet."
             />
-            <div className="mt-3 flex items-center justify-between">
-              <Button size="sm" onClick={() => setAddOpen(true)}>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEditing(null);
+                  setAddOpen(true);
+                }}
+              >
                 <Plus className="mr-1 h-4 w-4" /> Add Task
               </Button>
               <Button size="sm" variant="default" onClick={() => setConfirmEnd(true)}>
                 End Day & Rollover
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/import-tasks">
+                  <FileUp className="mr-1 h-4 w-4" />
+                  Import Tasks
+                </Link>
               </Button>
             </div>
           </CardContent>
@@ -122,25 +140,34 @@ function Dashboard() {
             {parkingPreview.length === 0 ? (
               <p className="text-sm text-muted-foreground">No ideas parked yet.</p>
             ) : (
-              <div className="overflow-hidden rounded-lg border">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full min-w-[760px] table-fixed text-[13px]">
+                  <colgroup>
+                    <col className="w-[34%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[15%]" />
+                  </colgroup>
                   <thead className="bg-primary text-primary-foreground">
                     <tr className="text-left">
-                      <th className="px-3 py-2 font-medium">Idea</th>
-                      <th className="px-3 py-2 font-medium">Branch / Area</th>
-                      <th className="px-3 py-2 font-medium">Type</th>
-                      <th className="px-3 py-2 font-medium">Decision</th>
-                      <th className="px-3 py-2 font-medium">Priority</th>
+                      <th className="px-4 py-3 font-medium">Idea</th>
+                      <th className="px-4 py-3 font-medium">Branch / Area</th>
+                      <th className="px-4 py-3 font-medium">Type</th>
+                      <th className="px-4 py-3 font-medium">Decision</th>
+                      <th className="px-4 py-3 font-medium">Priority</th>
                     </tr>
                   </thead>
                   <tbody>
                     {parkingPreview.map((p) => (
-                      <tr key={p.id} className="border-t">
-                        <td className="px-3 py-2 font-medium">{p.idea}</td>
-                        <td className="px-3 py-2"><AreaPill area={p.branch} /></td>
-                        <td className="px-3 py-2 text-muted-foreground">{p.type}</td>
-                        <td className="px-3 py-2"><StatusBadge status="Idea" /></td>
-                        <td className="px-3 py-2"><PriorityBadge priority={p.priority} /></td>
+                      <tr key={p.id} className="border-t align-top">
+                        <td className="px-4 py-3.5 text-sm font-medium leading-relaxed text-ink break-words">
+                          {p.idea}
+                        </td>
+                        <td className="px-4 py-3.5"><AreaPill area={p.branch} /></td>
+                        <td className="px-4 py-3.5 text-muted-foreground break-words">{p.type}</td>
+                        <td className="px-4 py-3.5"><StatusBadge status="Idea" /></td>
+                        <td className="px-4 py-3.5"><PriorityBadge priority={p.priority} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -164,11 +191,19 @@ function Dashboard() {
 
       <TaskDialog
         open={addOpen}
-        onOpenChange={setAddOpen}
-        initial={{ isToday: true }}
+        onOpenChange={(open) => {
+          setAddOpen(open);
+          if (!open) setEditing(null);
+        }}
+        initial={editing ?? { isToday: true }}
         onSubmit={(d) => {
-          addTask(d);
-          toast.success("Task added to Today.");
+          if (editing) {
+            updateTask(editing.id, d);
+            toast.success("Task updated.");
+          } else {
+            addTask(d);
+            toast.success("Task added to Today.");
+          }
         }}
       />
 

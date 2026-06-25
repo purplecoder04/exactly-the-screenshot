@@ -133,9 +133,9 @@ function AppShell() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
-        <SidebarInset className="flex flex-1 flex-col bg-transparent">
+        <SidebarInset className="flex min-w-0 flex-1 flex-col bg-transparent">
           <AppHeader />
-          <main className="flex-1 px-4 pb-12 md:px-8">
+          <main className="min-w-0 flex-1 px-4 pb-12 md:px-8">
             <Outlet />
           </main>
           <Toaster richColors position="top-right" />

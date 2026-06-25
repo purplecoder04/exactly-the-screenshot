@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, X, Pencil } from "lucide-react";
+import { Plus, X, Pencil, FileUp } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { TaskDialog } from "@/components/shared/TaskDialog";
 import { TaskTable } from "@/components/shared/TaskTable";
@@ -57,6 +57,11 @@ function TodayPage() {
           <p className="text-sm text-muted-foreground">Pick three. Move them. Close the day.</p>
         </div>
         <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to="/import-tasks">
+              <FileUp className="mr-1 h-4 w-4" /> Import Tasks
+            </Link>
+          </Button>
           <Button
             onClick={() => {
               setEditing(null);

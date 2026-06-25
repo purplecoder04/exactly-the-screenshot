@@ -15,6 +15,7 @@ import {
   Home,
   Calendar,
   Briefcase,
+  FileUp,
   Gem,
   Heart,
   Star,
@@ -35,6 +36,7 @@ const DASH: NavItem[] = [{ title: "Dashboard", url: "/", icon: Home }];
 const TODAY_FOCUS: NavItem[] = [
   { title: "Today", url: "/today", icon: Calendar },
   { title: "Parking Lot", url: "/parking-lot", icon: Briefcase },
+  { title: "Import Tasks", url: "/import-tasks", icon: FileUp },
 ];
 
 const CORE: NavItem[] = [

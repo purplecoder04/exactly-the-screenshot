@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { loadJSON, saveJSON } from "@/lib/storage";
 
 export function useLocalState<T>(key: string, fallback: T) {
   const [value, setValue] = useState<T>(fallback);
-  const loaded = useRef(false);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
 
   useEffect(() => {
     setValue(loadJSON<T>(key, fallback));
-    loaded.current = true;
+    setLoadedKey(key);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   useEffect(() => {
-    if (!loaded.current) return;
+    if (loadedKey !== key) return;
     saveJSON(key, value);
-  }, [key, value]);
+  }, [key, loadedKey, value]);
 
   const reset = useCallback(() => setValue(fallback), [fallback]);
 
