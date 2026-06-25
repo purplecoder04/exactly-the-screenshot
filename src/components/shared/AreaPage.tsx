@@ -1,13 +1,62 @@
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import type { ComponentType } from "react";
+import { BookOpen, Flower2, HeartHandshake, Mountain, Plus, Settings2, Sprout } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useTasks } from "@/hooks/useTasks";
-import { FilterBar, EMPTY_FILTERS, type Filters } from "@/components/shared/FilterBar";
-import { TaskTable } from "@/components/shared/TaskTable";
-import { TaskDialog } from "@/components/shared/TaskDialog";
 import { AreaDot } from "@/components/shared/AreaPill";
-import type { TaskItem, WorkspaceArea } from "@/lib/types";
+import { FilterBar, EMPTY_FILTERS, type Filters } from "@/components/shared/FilterBar";
+import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
+import { TaskDialog } from "@/components/shared/TaskDialog";
+import { TaskTable } from "@/components/shared/TaskTable";
+import { useTasks } from "@/hooks/useTasks";
+import { areaTypeFor, type TaskItem, type WorkspaceArea } from "@/lib/types";
+
+type AreaTreatment = {
+  eyebrow: string;
+  icon: ComponentType<{ className?: string }>;
+  heroClass: string;
+  statTints: [string, string, string, string];
+};
+
+const WORKSTREAM_TREATMENT: AreaTreatment = {
+  eyebrow: "Workstream Studio",
+  icon: Settings2,
+  heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(231,240,237,0.72))]",
+  statTints: ["bg-lavender/35", "bg-sage/25", "bg-powder-blue/30", "bg-gold/20"],
+};
+
+const AREA_TREATMENTS: Partial<Record<WorkspaceArea, AreaTreatment>> = {
+  Brand: {
+    eyebrow: "Brand Studio",
+    icon: BookOpen,
+    heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(246,225,239,0.72))]",
+    statTints: ["bg-lavender/45", "bg-gold/25", "bg-blush/35", "bg-primary/10"],
+  },
+  Rise: {
+    eyebrow: "Rise Studio",
+    icon: Flower2,
+    heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(250,211,226,0.62))]",
+    statTints: ["bg-blush/45", "bg-lavender/35", "bg-gold/20", "bg-priority-high/15"],
+  },
+  Land: {
+    eyebrow: "Land Studio",
+    icon: Mountain,
+    heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(191,207,166,0.45))]",
+    statTints: ["bg-sage/35", "bg-green-muted/25", "bg-gold/20", "bg-lavender/25"],
+  },
+  Rebuild: {
+    eyebrow: "Rebuild Studio",
+    icon: Sprout,
+    heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(199,228,238,0.55))]",
+    statTints: ["bg-powder-blue/40", "bg-sage/25", "bg-lavender/25", "bg-blush/25"],
+  },
+  "Meet at the Heal": {
+    eyebrow: "Meet at the Heal",
+    icon: HeartHandshake,
+    heroClass: "bg-[linear-gradient(135deg,rgba(255,251,245,0.96),rgba(250,211,226,0.5),rgba(217,163,87,0.16))]",
+    statTints: ["bg-blush/40", "bg-gold/25", "bg-lavender/30", "bg-sage/20"],
+  },
+};
 
 export function AreaPage({ area, blurb }: { area: WorkspaceArea; blurb?: string }) {
   const { tasks, addTask, updateTask, deleteTask, toggleDone, moveToToday } = useTasks();
@@ -15,79 +64,98 @@ export function AreaPage({ area, blurb }: { area: WorkspaceArea; blurb?: string 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TaskItem | null>(null);
 
-  const scoped = useMemo(() => tasks.filter((t) => t.branch === area), [tasks, area]);
+  const scoped = useMemo(() => tasks.filter((task) => task.branch === area), [tasks, area]);
 
   const filtered = useMemo(
     () =>
-      scoped.filter((t) => {
-        if (filters.status !== "all" && t.status !== filters.status) return false;
-        if (filters.priority !== "all" && t.priority !== filters.priority) return false;
+      scoped.filter((task) => {
+        if (filters.status !== "all" && task.status !== filters.status) return false;
+        if (filters.priority !== "all" && task.priority !== filters.priority) return false;
         return true;
       }),
     [scoped, filters],
   );
 
-  const stats = useMemo(() => {
-    return {
-      active: scoped.filter((t) => !t.isDone).length,
-      done: scoped.filter((t) => t.isDone).length,
-      waiting: scoped.filter((t) => t.status === "Waiting").length,
-      high: scoped.filter((t) => t.priority === "High" && !t.isDone).length,
-    };
-  }, [scoped]);
+  const stats = useMemo(
+    () => ({
+      active: scoped.filter((task) => !task.isDone).length,
+      done: scoped.filter((task) => task.isDone).length,
+      waiting: scoped.filter((task) => task.status === "Waiting").length,
+      high: scoped.filter((task) => task.priority === "High" && !task.isDone).length,
+    }),
+    [scoped],
+  );
+
+  const treatment = AREA_TREATMENTS[area] ?? WORKSTREAM_TREATMENT;
+  const AccentIcon = treatment.icon;
+  const typeLabel = areaTypeFor(area);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 font-display text-3xl text-ink">
+    <div className="space-y-6">
+      <PlannerPageHeader
+        eyebrow={treatment.eyebrow}
+        title={area}
+        description={blurb ?? `${typeLabel} tasks, focus, and progress.`}
+        className={treatment.heroClass}
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add Task
+          </Button>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/75 px-3 py-2 text-sm text-ink">
             <AreaDot area={area} className="h-3 w-3" />
-            {area}
-          </h2>
-          {blurb && <p className="text-sm text-muted-foreground">{blurb}</p>}
+            {typeLabel}
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/75 px-3 py-2 text-sm text-ink">
+            <AccentIcon className="h-4 w-4 text-gold" />
+            {filtered.length} shown
+          </div>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
+      </PlannerPageHeader>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatTile label="Active" value={stats.active} tint={treatment.statTints[0]} />
+        <StatTile label="Done" value={stats.done} tint={treatment.statTints[1]} />
+        <StatTile label="Waiting" value={stats.waiting} tint={treatment.statTints[2]} />
+        <StatTile label="High Priority" value={stats.high} tint={treatment.statTints[3]} />
+      </div>
+
+      <PlannerPanel title="Filters" description="Focus this page by status or priority.">
+        <FilterBar value={filters} onChange={setFilters} hideArea />
+      </PlannerPanel>
+
+      <PlannerPanel title={`${area} Task Board`} description="Add, edit, delete, complete, or move tasks into Today.">
+        <TaskTable
+          tasks={filtered}
+          onToggle={toggleDone}
+          onEdit={(task) => {
+            setEditing(task);
             setOpen(true);
           }}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add Task
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-        <StatTile label="Active" value={stats.active} tint="bg-lavender/40" />
-        <StatTile label="Done" value={stats.done} tint="bg-green-muted/30" />
-        <StatTile label="Waiting" value={stats.waiting} tint="bg-status-waiting/25" />
-        <StatTile label="High Priority" value={stats.high} tint="bg-blush/40" />
-      </div>
-
-      <FilterBar value={filters} onChange={setFilters} hideArea />
-
-      <TaskTable
-        tasks={filtered}
-        onToggle={toggleDone}
-        onEdit={(t) => {
-          setEditing(t);
-          setOpen(true);
-        }}
-        onDelete={deleteTask}
-        onMoveToToday={moveToToday}
-        emptyLabel={`No tasks in ${area} yet.`}
-      />
+          onDelete={deleteTask}
+          onMoveToToday={moveToToday}
+          emptyLabel={`No tasks in ${area} yet.`}
+        />
+      </PlannerPanel>
 
       <TaskDialog
         open={open}
         onOpenChange={setOpen}
         initial={editing ?? { branch: area }}
         lockedBranch={editing ? undefined : area}
-        onSubmit={(d) => {
+        onSubmit={(data) => {
           if (editing) {
-            updateTask(editing.id, d);
+            updateTask(editing.id, data);
             toast.success("Task updated.");
           } else {
-            addTask(d);
+            addTask(data);
             toast.success("Task added.");
           }
         }}
@@ -98,9 +166,9 @@ export function AreaPage({ area, blurb }: { area: WorkspaceArea; blurb?: string 
 
 function StatTile({ label, value, tint }: { label: string; value: number; tint: string }) {
   return (
-    <div className={`rounded-md ${tint} px-3 py-3 text-center`}>
-      <div className="font-display text-2xl font-medium text-ink">{value}</div>
-      <div className="text-[11px] text-muted-foreground">{label}</div>
+    <div className={`planner-soft-hover rounded-2xl border border-border/70 ${tint} px-4 py-4 text-center`}>
+      <div className="text-3xl font-semibold leading-none text-ink">{value}</div>
+      <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
     </div>
   );
 }
