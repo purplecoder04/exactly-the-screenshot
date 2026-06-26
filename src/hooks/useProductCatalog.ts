@@ -18,6 +18,7 @@ export function useProductCatalog() {
     (data: ProductInput) => {
       const product: ProductCatalogItem = {
         ...data,
+        isLocked: data.isLocked ?? false,
         id: newId("prod"),
         areaType: areaTypeFor(data.branch),
         createdAt: nowISO(),
@@ -34,10 +35,29 @@ export function useProductCatalog() {
       setProducts((current) =>
         current.map((product) =>
           product.id === id
+            ? product.isLocked && patch.isLocked !== false
+              ? product
+              : {
+                  ...product,
+                  ...patch,
+                  areaType: patch.branch ? areaTypeFor(patch.branch) : product.areaType,
+                  updatedAt: nowISO(),
+                }
+            : product,
+        ),
+      );
+    },
+    [setProducts],
+  );
+
+  const toggleProductLock = useCallback(
+    (id: string) => {
+      setProducts((current) =>
+        current.map((product) =>
+          product.id === id
             ? {
                 ...product,
-                ...patch,
-                areaType: patch.branch ? areaTypeFor(patch.branch) : product.areaType,
+                isLocked: !product.isLocked,
                 updatedAt: nowISO(),
               }
             : product,
@@ -48,9 +68,10 @@ export function useProductCatalog() {
   );
 
   const deleteProduct = useCallback(
-    (id: string) => setProducts((current) => current.filter((product) => product.id !== id)),
+    (id: string) =>
+      setProducts((current) => current.filter((product) => product.id !== id || product.isLocked)),
     [setProducts],
   );
 
-  return { products, setProducts, addProduct, updateProduct, deleteProduct };
+  return { products, setProducts, addProduct, updateProduct, deleteProduct, toggleProductLock };
 }

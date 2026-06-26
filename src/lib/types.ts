@@ -144,6 +144,7 @@ export type ProductCatalogItem = {
   bridgeProduct: string;
   version: string;
   notes: string;
+  isLocked: boolean;
   createdAt: string;
   updatedAt: string;
 };
