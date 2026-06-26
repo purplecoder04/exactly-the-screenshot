@@ -15,7 +15,7 @@ export function useCompanyGoal() {
   );
 
   const clearGoal = useCallback(() => {
-    setGoal({ title: "", notes: "", updatedAt: nowISO() });
+    setGoal({ title: "", nextStep: "", notes: "", updatedAt: nowISO() });
   }, [setGoal]);
 
   return { goal, updateGoal, clearGoal };

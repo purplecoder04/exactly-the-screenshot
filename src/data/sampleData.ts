@@ -367,7 +367,9 @@ export const SAMPLE_WEEKLY_NOTES: WeeklyNote[] = [
 
 export const SAMPLE_COMPANY_GOAL: CompanyGoal = {
   title: "Finish Why Do Men Come Back",
-  notes: "Use this as the active company goal until the core lesson guide, workbook path, and related launch tasks are clear.",
+  nextStep: "Outline Chapter 6 and connect it to the lesson guide path.",
+  notes:
+    "Use this as the active company goal until the core lesson guide, workbook path, and related launch tasks are clear.",
   updatedAt: iso(),
 };
 
@@ -376,7 +378,8 @@ export const SAMPLE_WEEKLY_PLAN: WeeklyPlan = {
   topProjects: ["Why Do Men Come Back", "Kit Factory App", "Return Series Hooks"],
   biggestRisk: "Spreading attention across too many branches before the core offer is ready.",
   waitingOn: "Final lesson outline and workbook flow decisions.",
-  successThisWeek: "A clean lesson guide draft, tested import flow, and three usable promotion hooks.",
+  successThisWeek:
+    "A clean lesson guide draft, tested import flow, and three usable promotion hooks.",
   updatedAt: iso(),
 };
 
@@ -447,7 +450,8 @@ export const SAMPLE_FRAMEWORKS: FrameworkItem[] = [
   {
     id: "fw1",
     name: "Behavior is a Language",
-    definition: "Behavior communicates patterns, priorities, fear, capacity, and care before words can dress them up.",
+    definition:
+      "Behavior communicates patterns, priorities, fear, capacity, and care before words can dress them up.",
     purpose: "Help the reader interpret repeated behavior without over-explaining it away.",
     relatedBooks: "Why Do Men Come Back",
     relatedQuizzes: "Relationship Pattern Quiz",
@@ -462,7 +466,8 @@ export const SAMPLE_FRAMEWORKS: FrameworkItem[] = [
   {
     id: "fw2",
     name: "Return vs Repair",
-    definition: "A return is a re-entry. Repair is changed behavior, truth, accountability, and a safer pattern.",
+    definition:
+      "A return is a re-entry. Repair is changed behavior, truth, accountability, and a safer pattern.",
     purpose: "Separate emotional relief from actual relationship progress.",
     relatedBooks: "Why Do Men Come Back",
     relatedQuizzes: "",
@@ -477,7 +482,8 @@ export const SAMPLE_FRAMEWORKS: FrameworkItem[] = [
   {
     id: "fw3",
     name: "Doorway Test",
-    definition: "A decision filter for whether a conversation, offer, or next step opens the right door for the person in front of you.",
+    definition:
+      "A decision filter for whether a conversation, offer, or next step opens the right door for the person in front of you.",
     purpose: "Keep products and content simple, emotionally precise, and action-oriented.",
     relatedBooks: "",
     relatedQuizzes: "",

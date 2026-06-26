@@ -91,6 +91,7 @@ export type TaskItem = {
 
 export type CompanyGoal = {
   title: string;
+  nextStep: string;
   notes: string;
   updatedAt: string;
 };

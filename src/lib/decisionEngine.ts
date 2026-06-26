@@ -69,7 +69,8 @@ function scoreTask(
     reasons.push(`Blocks ${blocksCount} project${blocksCount === 1 ? "" : "s"}`);
   }
 
-  if (goalMatches(task, companyGoal.title) || goalMatches(task, weeklyPlan.weeklyGoal)) {
+  const companyGoalText = [companyGoal.title, companyGoal.nextStep, companyGoal.notes].join(" ");
+  if (goalMatches(task, companyGoalText) || goalMatches(task, weeklyPlan.weeklyGoal)) {
     score += 28;
     reasons.push("Supports active company goal");
   }
@@ -109,9 +110,10 @@ function scoreTask(
 }
 
 function estimateBlocks(task: TaskItem, allActive: TaskItem[]) {
-  const explicitBlocker = /\b(block|blocking|blocked|unblock|waiting on|depends on|dependency)\b/i.test(
-    `${task.title} ${task.nextStep} ${task.notes}`,
-  );
+  const explicitBlocker =
+    /\b(block|blocking|blocked|unblock|waiting on|depends on|dependency)\b/i.test(
+      `${task.title} ${task.nextStep} ${task.notes}`,
+    );
   const related = allActive.filter(
     (other) =>
       other.id !== task.id &&
@@ -136,7 +138,8 @@ function estimateMinutes(task: TaskItem) {
 function goalMatches(task: TaskItem, value: string) {
   const tokens = tokenize(value);
   if (tokens.length === 0) return false;
-  const haystack = `${task.title} ${task.project ?? ""} ${task.nextStep} ${task.notes}`.toLowerCase();
+  const haystack =
+    `${task.title} ${task.project ?? ""} ${task.nextStep} ${task.notes}`.toLowerCase();
   return tokens.some((token) => haystack.includes(token));
 }
 
