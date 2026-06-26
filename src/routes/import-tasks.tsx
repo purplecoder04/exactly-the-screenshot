@@ -16,7 +16,10 @@ export const Route = createFileRoute("/import-tasks")({
   head: () => ({
     meta: [
       { title: "Import Work Session - Best Collective" },
-      { name: "description", content: "Turn local documents into reviewed operating-system items." },
+      {
+        name: "description",
+        content: "Turn local documents into reviewed operating-system items.",
+      },
     ],
   }),
   component: ImportWorkSessionPage,
@@ -67,7 +70,9 @@ function ImportWorkSessionPage() {
       setDrafts(parsedDrafts);
       setStatus("review");
       if (parsedDrafts.length === 0) {
-        setError("No structured lines found. Try TODO:, Task:, Next Step:, Fix:, Build:, Add:, Update:, Test:, Idea:, Framework:, Product Update:, Meeting Note:, Founder Note:, or Prompt:.");
+        setError(
+          "No structured lines found. Try TODO:, Task:, Next Step:, Fix:, Build:, Add:, Update:, Test:, Idea:, Framework:, Product Update:, Meeting Note:, Founder Note:, or Prompt:.",
+        );
       }
     } catch (err) {
       setStatus("idle");
@@ -80,14 +85,7 @@ function ImportWorkSessionPage() {
   const updateDraft = (draftId: string, patch: Partial<WorkSessionDraft>) => {
     setDrafts((current) =>
       current.map((draft) =>
-        draft.draftId === draftId
-          ? {
-              ...draft,
-              ...patch,
-              branch: patch.branch ?? draft.branch,
-              type: patch.category && patch.category !== "Task" ? "Idea" : patch.type ?? draft.type,
-            }
-          : draft,
+        draft.draftId === draftId ? normalizeDraftPatch(draft, patch) : draft,
       ),
     );
   };
@@ -150,7 +148,11 @@ function ImportWorkSessionPage() {
             </div>
           </div>
 
-          {isParsing && <p className="text-sm text-muted-foreground">Reading document and structuring your work session...</p>}
+          {isParsing && (
+            <p className="text-sm text-muted-foreground">
+              Reading document and structuring your work session...
+            </p>
+          )}
           {fileName && !isParsing && (
             <p className="text-xs text-muted-foreground">
               Current file: <span className="font-medium text-ink">{fileName}</span>
@@ -169,7 +171,10 @@ function ImportWorkSessionPage() {
           drafts={drafts}
           sourceDescription={`${sourceText.length.toLocaleString()} characters in ${fileName || "uploaded file"}`}
           onUpdate={updateDraft}
-          onRemove={(draftId) => setDrafts((current) => current.filter((draft) => draft.draftId !== draftId))}
+          onBulkUpdate={(updater) => setDrafts((current) => updater(current))}
+          onRemove={(draftId) =>
+            setDrafts((current) => current.filter((draft) => draft.draftId !== draftId))
+          }
           onSave={saveReviewed}
         />
       )}
@@ -180,7 +185,8 @@ function ImportWorkSessionPage() {
             <div>
               <h3 className="font-display text-2xl text-ink">Work session saved</h3>
               <p className="text-sm text-muted-foreground">
-                Added {savedCount} reviewed item{savedCount === 1 ? "" : "s"} to the dashboard system.
+                Added {savedCount} reviewed item{savedCount === 1 ? "" : "s"} to the dashboard
+                system.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -200,4 +206,21 @@ function ImportWorkSessionPage() {
       )}
     </div>
   );
+}
+
+function normalizeDraftPatch(
+  draft: WorkSessionDraft,
+  patch: Partial<WorkSessionDraft>,
+): WorkSessionDraft {
+  const nextCategory = patch.category ?? draft.category;
+  const nextType =
+    patch.type ??
+    (nextCategory === "Task" ? (draft.type === "Idea" ? "Task" : draft.type) : "Idea");
+
+  return {
+    ...draft,
+    ...patch,
+    branch: patch.branch ?? draft.branch,
+    type: nextType,
+  };
 }

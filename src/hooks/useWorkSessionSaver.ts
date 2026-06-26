@@ -15,6 +15,7 @@ const emptyCounts = (): Record<WorkSessionCategory, number> => ({
   Task: 0,
   Idea: 0,
   Framework: 0,
+  Product: 0,
   Decision: 0,
   "Product Update": 0,
   "Meeting Note": 0,

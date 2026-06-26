@@ -16,7 +16,10 @@ export const Route = createFileRoute("/brain-dump")({
   head: () => ({
     meta: [
       { title: "Brain Dump - Best Collective" },
-      { name: "description", content: "Capture founder thoughts and convert them into reviewed operating items." },
+      {
+        name: "description",
+        content: "Capture founder thoughts and convert them into reviewed operating items.",
+      },
     ],
   }),
   component: BrainDumpPage,
@@ -25,6 +28,7 @@ export const Route = createFileRoute("/brain-dump")({
 function BrainDumpPage() {
   const [draftText, setDraftText] = useLocalState<string>(STORAGE_KEYS.brainDumpDraft, "");
   const [drafts, setDrafts] = useState<WorkSessionDraft[]>([]);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { saveDrafts } = useWorkSessionSaver();
 
@@ -36,7 +40,8 @@ function BrainDumpPage() {
     setIsAnalyzing(true);
     try {
       const parsed = await parseTextToWorkSessionDrafts(draftText, "Brain Dump");
-      setDrafts(parsed);
+      setDrafts(parsed.map((draft) => ({ ...draft, collapsed: draft.confidence === "High" })));
+      setHasAnalyzed(true);
       toast.success(`${parsed.length} item${parsed.length === 1 ? "" : "s"} ready for review.`);
     } finally {
       setIsAnalyzing(false);
@@ -46,20 +51,25 @@ function BrainDumpPage() {
   const updateDraft = (draftId: string, patch: Partial<WorkSessionDraft>) => {
     setDrafts((current) =>
       current.map((draft) =>
-        draft.draftId === draftId
-          ? {
-              ...draft,
-              ...patch,
-              type: patch.category && patch.category !== "Task" ? "Idea" : patch.type ?? draft.type,
-            }
-          : draft,
+        draft.draftId === draftId ? normalizeDraftPatch(draft, patch) : draft,
       ),
     );
   };
 
   const saveReviewed = () => {
-    const result = saveDrafts(drafts);
-    setDrafts([]);
+    const selectedIds = new Set(
+      drafts
+        .filter((draft) => draft.selected && !draft.saved && draft.title.trim())
+        .map((draft) => draft.draftId),
+    );
+    const result = saveDrafts(drafts.filter((draft) => !draft.saved));
+    setDrafts((current) =>
+      current.map((draft) =>
+        selectedIds.has(draft.draftId)
+          ? { ...draft, selected: false, saved: true, collapsed: true }
+          : draft,
+      ),
+    );
     toast.success(`${result.total} reviewed item${result.total === 1 ? "" : "s"} saved.`);
   };
 
@@ -92,6 +102,7 @@ function BrainDumpPage() {
               onClick={() => {
                 setDraftText("");
                 setDrafts([]);
+                setHasAnalyzed(false);
               }}
             >
               <Eraser className="mr-1 h-4 w-4" />
@@ -117,15 +128,34 @@ function BrainDumpPage() {
         </div>
       </PlannerPanel>
 
-      {drafts.length > 0 && (
+      {hasAnalyzed && (
         <WorkSessionReview
           drafts={drafts}
           sourceDescription="Brain Dump"
           onUpdate={updateDraft}
-          onRemove={(draftId) => setDrafts((current) => current.filter((draft) => draft.draftId !== draftId))}
+          onBulkUpdate={(updater) => setDrafts((current) => updater(current))}
+          onRemove={(draftId) =>
+            setDrafts((current) => current.filter((draft) => draft.draftId !== draftId))
+          }
           onSave={saveReviewed}
         />
       )}
     </div>
   );
+}
+
+function normalizeDraftPatch(
+  draft: WorkSessionDraft,
+  patch: Partial<WorkSessionDraft>,
+): WorkSessionDraft {
+  const nextCategory = patch.category ?? draft.category;
+  const nextType =
+    patch.type ??
+    (nextCategory === "Task" ? (draft.type === "Idea" ? "Task" : draft.type) : "Idea");
+
+  return {
+    ...draft,
+    ...patch,
+    type: nextType,
+  };
 }

@@ -8,6 +8,8 @@ import {
   type WorkspaceArea,
 } from "@/lib/types";
 
+export type ConfidenceLevel = "High" | "Medium" | "Low";
+
 export type WorkSessionDraft = {
   draftId: string;
   selected: boolean;
@@ -23,12 +25,17 @@ export type WorkSessionDraft = {
   notes: string;
   isToday: boolean;
   rawText: string;
+  confidence: ConfidenceLevel;
+  confidenceSignals: string[];
+  collapsed?: boolean;
+  saved?: boolean;
 };
 
 const PREFIX_CATEGORY: Array<[RegExp, WorkSessionCategory]> = [
   [/^\s*(TODO|Task|Next Step|Fix|Build|Add|Update|Test):\s*(.+?)\s*$/i, "Task"],
   [/^\s*Idea:\s*(.+?)\s*$/i, "Idea"],
   [/^\s*Framework:\s*(.+?)\s*$/i, "Framework"],
+  [/^\s*Product:\s*(.+?)\s*$/i, "Product"],
   [/^\s*(Decision):\s*(.+?)\s*$/i, "Decision"],
   [/^\s*Product Update:\s*(.+?)\s*$/i, "Product Update"],
   [/^\s*Meeting Note:\s*(.+?)\s*$/i, "Meeting Note"],
@@ -43,17 +50,13 @@ const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[
     patterns: [
       /\bbelongs in the framework library\b/i,
       /\bis a framework\b/i,
+      /\bframework:\s*/i,
       /\brule:\s*/i,
     ],
   },
   {
     category: "Decision",
-    patterns: [
-      /\bdecision:\s*/i,
-      /\blocked\b/i,
-      /\bwe decided\b/i,
-      /\bconfirmed\b/i,
-    ],
+    patterns: [/\bdecision:\s*/i, /\blocked\b/i, /\bwe decided\b/i, /\bconfirmed\b/i],
   },
   {
     category: "Idea",
@@ -68,8 +71,8 @@ const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[
   {
     category: "Task",
     patterns: [
-      /\bneed to\b/i,
-      /\bfinish\b/i,
+      /\bneed(?:s)?(?:\s+to)?\b/i,
+      /\bfinish(?:ed)?\b/i,
       /\bupdate\b/i,
       /\badd\b/i,
       /\bcreate\b/i,
@@ -79,13 +82,110 @@ const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[
     ],
   },
   {
+    category: "Prompt Idea",
+    patterns: [/\bprompt\b/i],
+  },
+  {
+    category: "Product",
+    patterns: [/\bproduct catalog\b/i, /\blesson\b/i, /\bbook\b/i, /\bchapter\b/i, /\bquiz\b/i],
+  },
+  {
     category: "Note",
-    patterns: [
-      /\bremember\b/i,
-      /\bnote:\s*/i,
-      /\bclass notes?\b/i,
-      /\bpersonal note\b/i,
-    ],
+    patterns: [/\bremember\b/i, /\bnote:\s*/i, /\bclass notes?\b/i, /\bpersonal note\b/i],
+  },
+];
+
+type CategoryMatch = {
+  category: WorkSessionCategory;
+  matched: boolean;
+};
+
+type RoutingHint = {
+  branch: WorkspaceArea;
+  branchMatched: boolean;
+  project?: string;
+  projectMatched: boolean;
+  categoryHint?: WorkSessionCategory;
+};
+
+type RoutingRule = {
+  patterns: RegExp[];
+  branch?: WorkspaceArea;
+  project?: string;
+  categoryHint?: WorkSessionCategory;
+};
+
+const ROUTING_RULES: RoutingRule[] = [
+  {
+    patterns: [/\bcall\b.*\binsurance\b/i, /\binsurance company\b/i],
+    project: "Personal Admin",
+    categoryHint: "Task",
+  },
+  {
+    patterns: [/\bgrocer(?:y|ies)\b/i, /\bdentist\b/i, /\boil change\b/i],
+    project: "Personal",
+    categoryHint: "Task",
+  },
+  {
+    patterns: [/\bresume\b/i],
+    branch: "Rebuild",
+  },
+  {
+    patterns: [/\bworkbook\b/i],
+    branch: "Kit Factory App",
+    project: "Kit Factory",
+  },
+  {
+    patterns: [/\bframework\b/i],
+    project: "Framework Library",
+    categoryHint: "Framework",
+  },
+  {
+    patterns: [/\bprompt\b/i],
+    project: "Prompt Library",
+    categoryHint: "Prompt Idea",
+  },
+  {
+    patterns: [/\bvideo\b/i, /\breel\b/i, /\bsocial media\b/i],
+    branch: "Social Media",
+  },
+  {
+    patterns: [/\bwebsite\b/i, /\blanding page\b/i],
+    branch: "Website",
+  },
+  {
+    patterns: [/\blesson\b/i, /\bbook\b/i, /\bchapter\b/i, /\bquiz\b/i, /\bproduct catalog\b/i],
+    project: "Product Catalog",
+    categoryHint: "Product",
+  },
+  {
+    patterns: [/\bcustomer\b/i, /\bpricing\b/i, /\bbrand\b/i],
+    branch: "Brand",
+  },
+  {
+    patterns: [/\brelationship\b/i, /\bheal\b/i],
+    branch: "Meet at the Heal",
+  },
+  {
+    patterns: [/\bdating\b/i, /\brise\b/i, /\bwoman\b/i, /\bwomen\b/i],
+    branch: "Rise",
+  },
+  {
+    patterns: [/\bmen\b/i, /\bland\b/i],
+    branch: "Land",
+  },
+  {
+    patterns: [/\brebuild\b/i],
+    branch: "Rebuild",
+  },
+  {
+    patterns: [/\bkit factory\b/i],
+    branch: "Kit Factory App",
+    project: "Kit Factory",
+  },
+  {
+    patterns: [/\bapp\b/i],
+    branch: "Kit Factory App",
   },
 ];
 
@@ -102,34 +202,37 @@ export function ruleBasedWorkSessionParser(text: string, sourceLabel = "Brain Du
     .filter((draft): draft is WorkSessionDraft => Boolean(draft));
 }
 
-function segmentToDraft(segment: string, index: number, sourceLabel: string): WorkSessionDraft | null {
+function segmentToDraft(
+  segment: string,
+  index: number,
+  sourceLabel: string,
+): WorkSessionDraft | null {
   const cleaned = cleanSegment(segment);
   if (!cleaned) return null;
 
-  for (const [regex, category] of PREFIX_CATEGORY) {
-    const match = cleaned.match(regex);
-    if (!match) continue;
-    const value = (match[2] ?? match[1] ?? "").trim();
-    if (!value) return null;
-    return baseDraft({
-      index,
-      sourceLabel,
-      category,
-      title: titleFrom(value),
-      body: value,
-      rawText: cleaned,
-      isNextStep: /^next step:/i.test(cleaned),
-    });
-  }
+  const prefixed = prefixMatch(cleaned);
+  const body = prefixed?.value ?? stripInlinePrefix(cleaned);
+  if (!body) return null;
 
-  const category = classifyByKeyword(cleaned);
+  const routing = inferRouting(body);
+  const keywordMatch = classifyByKeyword(cleaned);
+  const category =
+    prefixed?.category ??
+    (keywordMatch.matched ? keywordMatch.category : undefined) ??
+    routing.categoryHint ??
+    "Note";
+
   return baseDraft({
     index,
     sourceLabel,
     category,
-    title: titleFrom(stripInlinePrefix(cleaned)),
-    body: stripInlinePrefix(cleaned),
+    title: titleFrom(body),
+    body,
     rawText: cleaned,
+    routing,
+    hasPrefix: Boolean(prefixed),
+    keywordMatched: keywordMatch.matched,
+    isNextStep: /^next step:/i.test(cleaned),
   });
 }
 
@@ -159,16 +262,32 @@ function cleanSegment(value: string) {
     .trim();
 }
 
-function classifyByKeyword(value: string): WorkSessionCategory {
-  for (const rule of KEYWORD_CATEGORY) {
-    if (rule.patterns.some((pattern) => pattern.test(value))) return rule.category;
+function prefixMatch(value: string) {
+  for (const [regex, category] of PREFIX_CATEGORY) {
+    const match = value.match(regex);
+    if (!match) continue;
+    const matchedValue = (match[2] ?? match[1] ?? "").trim();
+    if (!matchedValue) return null;
+    return { category, value: matchedValue };
   }
-  return "Note";
+  return null;
+}
+
+function classifyByKeyword(value: string): CategoryMatch {
+  for (const rule of KEYWORD_CATEGORY) {
+    if (rule.patterns.some((pattern) => pattern.test(value))) {
+      return { category: rule.category, matched: true };
+    }
+  }
+  return { category: "Note", matched: false };
 }
 
 function stripInlinePrefix(value: string) {
   return value
-    .replace(/^\s*(decision|idea|framework|note|class notes|personal note|rule):\s*/i, "")
+    .replace(
+      /^\s*(decision|idea|framework|product|product update|meeting note|note|class notes|personal note|founder note|prompt|prompt idea|rule):\s*/i,
+      "",
+    )
     .trim();
 }
 
@@ -179,6 +298,9 @@ function baseDraft({
   title,
   body,
   rawText,
+  routing,
+  hasPrefix,
+  keywordMatched,
   isNextStep = false,
 }: {
   index: number;
@@ -187,41 +309,111 @@ function baseDraft({
   title: string;
   body: string;
   rawText: string;
+  routing: RoutingHint;
+  hasPrefix: boolean;
+  keywordMatched: boolean;
   isNextStep?: boolean;
 }): WorkSessionDraft {
-  const branch: WorkspaceArea = inferBranch(body);
+  const priority = inferPriority(body);
+  const confidence = inferConfidence({
+    category,
+    priority,
+    hasPrefix,
+    keywordMatched,
+    routing,
+  });
+
   return {
-    draftId: `draft_${index}_${title.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 28)}`,
+    draftId: `draft_${index}_${title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .slice(0, 28)}`,
     selected: true,
     category,
     title,
     body,
-    branch,
-    project: inferProject(body),
+    branch: routing.branch,
+    project: routing.project ?? inferProject(body),
     type: category === "Task" ? inferTaskType(body) : "Idea",
     status: category === "Task" ? "Idea" : "Outline",
-    priority: inferPriority(body),
+    priority,
     nextStep: isNextStep ? title : "",
     notes: `Source: ${sourceLabel}\nOriginal: ${rawText}`,
     isToday: false,
     rawText,
+    confidence: confidence.level,
+    confidenceSignals: confidence.signals,
   };
+}
+
+function inferRouting(value: string): RoutingHint {
+  const routing: RoutingHint = {
+    branch: "Brand",
+    branchMatched: false,
+    projectMatched: false,
+  };
+
+  ROUTING_RULES.forEach((rule) => {
+    if (!rule.patterns.some((pattern) => pattern.test(value))) return;
+
+    if (rule.branch && !routing.branchMatched) {
+      routing.branch = rule.branch;
+      routing.branchMatched = true;
+    }
+
+    if (rule.project && !routing.projectMatched) {
+      routing.project = rule.project;
+      routing.projectMatched = true;
+    }
+
+    if (rule.categoryHint && !routing.categoryHint) {
+      routing.categoryHint = rule.categoryHint;
+    }
+  });
+
+  return routing;
+}
+
+function inferConfidence({
+  category,
+  priority,
+  hasPrefix,
+  keywordMatched,
+  routing,
+}: {
+  category: WorkSessionCategory;
+  priority: Priority;
+  hasPrefix: boolean;
+  keywordMatched: boolean;
+  routing: RoutingHint;
+}): { level: ConfidenceLevel; signals: string[] } {
+  const destinationMatched = routing.branchMatched || routing.projectMatched;
+  const categoryCertain = hasPrefix || keywordMatched || routing.categoryHint === category;
+  const signals = [
+    `${categoryCertain ? "Confirmed" : "Possible"} ${category}`,
+    routing.branchMatched
+      ? `Confirmed ${routing.branch}`
+      : routing.projectMatched
+        ? `Confirmed ${routing.project}`
+        : "Unknown branch",
+  ];
+
+  if (category === "Task") {
+    signals.push(`${priority} Priority`);
+  }
+
+  let level: ConfidenceLevel = "Low";
+  if (hasPrefix || (categoryCertain && destinationMatched)) {
+    level = "High";
+  } else if (categoryCertain || destinationMatched) {
+    level = "Medium";
+  }
+
+  return { level, signals };
 }
 
 function titleFrom(value: string) {
   return value.replace(/\s+/g, " ").slice(0, 110);
-}
-
-function inferBranch(value: string): WorkspaceArea {
-  const lower = value.toLowerCase();
-  if (lower.includes("rise") || lower.includes("woman") || lower.includes("women")) return "Rise";
-  if (lower.includes("land") || lower.includes("men ")) return "Land";
-  if (lower.includes("rebuild")) return "Rebuild";
-  if (lower.includes("heal") || lower.includes("couple")) return "Meet at the Heal";
-  if (lower.includes("kit factory")) return "Kit Factory App";
-  if (lower.includes("social")) return "Social Media";
-  if (lower.includes("website") || lower.includes("shop")) return "Website";
-  return "Brand";
 }
 
 function inferProject(value: string) {
@@ -234,9 +426,17 @@ function inferTaskType(value: string): ProjectType {
   if (lower.includes("workbook")) return "Workbook";
   if (lower.includes("guide") || lower.includes("lesson")) return "Guide";
   if (lower.includes("app")) return "App";
-  if (lower.includes("website") || lower.includes("page") || lower.includes("shop")) return "Website";
-  if (lower.includes("post") || lower.includes("reel") || lower.includes("hook")) return "Content";
-  if (lower.includes("system") || lower.includes("bible") || lower.includes("prompt")) return "System";
+  if (lower.includes("website") || lower.includes("page") || lower.includes("shop"))
+    return "Website";
+  if (
+    lower.includes("post") ||
+    lower.includes("reel") ||
+    lower.includes("hook") ||
+    lower.includes("video")
+  )
+    return "Content";
+  if (lower.includes("system") || lower.includes("bible") || lower.includes("prompt"))
+    return "System";
   if (lower.includes("book")) return "Book";
   return "Task";
 }

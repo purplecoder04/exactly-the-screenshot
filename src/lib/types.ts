@@ -1,10 +1,4 @@
-export const CORE_BRANCHES = [
-  "Brand",
-  "Rise",
-  "Land",
-  "Rebuild",
-  "Meet at the Heal",
-] as const;
+export const CORE_BRANCHES = ["Brand", "Rise", "Land", "Rebuild", "Meet at the Heal"] as const;
 
 export const WORKSTREAMS = [
   "Kit Factory App",
@@ -20,14 +14,7 @@ export type AreaType = "Branch" | "Workstream";
 
 export const ALL_AREAS: WorkspaceArea[] = [...CORE_BRANCHES, ...WORKSTREAMS];
 
-export const STATUSES = [
-  "Idea",
-  "Outline",
-  "Writing",
-  "Testing",
-  "Waiting",
-  "Done",
-] as const;
+export const STATUSES = ["Idea", "Outline", "Writing", "Testing", "Waiting", "Done"] as const;
 export type Status = (typeof STATUSES)[number];
 
 export const PRIORITIES = ["High", "Medium", "Low"] as const;
@@ -73,6 +60,7 @@ export const WORK_SESSION_CATEGORIES = [
   "Task",
   "Idea",
   "Framework",
+  "Product",
   "Decision",
   "Product Update",
   "Meeting Note",
