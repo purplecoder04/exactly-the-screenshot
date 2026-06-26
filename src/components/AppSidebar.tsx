@@ -14,6 +14,7 @@ import {
 import {
   BarChart3,
   BookOpen,
+  Brain,
   Calendar,
   FileUp,
   Gem,
@@ -27,6 +28,7 @@ import {
   Lightbulb,
   Lock,
   NotebookPen,
+  PackageOpen,
   Plus,
   Settings,
   Smartphone,
@@ -46,8 +48,10 @@ const DASH: NavItem[] = [{ title: "Dashboard", url: "/", icon: Home }];
 
 const TODAY_FOCUS: NavItem[] = [
   { title: "Today", url: "/today", icon: Calendar },
+  { title: "Brain Dump", url: "/brain-dump", icon: Brain },
   { title: "Idea Garden", url: "/parking-lot", icon: Lightbulb },
-  { title: "Import Tasks", url: "/import-tasks", icon: FileUp },
+  { title: "Import Work Session", url: "/import-tasks", icon: FileUp },
+  { title: "Weekly Planning", url: "/weekly-planning", icon: Calendar },
   { title: "Weekly Log", url: "/weekly-log", icon: NotebookPen },
 ];
 
@@ -64,6 +68,12 @@ const WORK: NavItem[] = [
   { title: "Social Media App", url: "/social-media-app", icon: Smartphone },
   { title: "Website", url: "/website", icon: Globe },
   { title: "Social Media", url: "/social-media", icon: Hash },
+];
+
+const STUDIO: NavItem[] = [
+  { title: "Product Catalog", url: "/products", icon: PackageOpen },
+  { title: "Framework Library", url: "/frameworks", icon: BookOpen },
+  { title: "Library", url: "/library", icon: Library },
 ];
 
 const FUTURE: NavItem[] = [
@@ -151,6 +161,7 @@ export function AppSidebar() {
         <NavGroup label="Today & Focus" items={TODAY_FOCUS} current={current} />
         <NavGroup label="Core Branches" items={CORE} current={current} />
         <NavGroup label="Workstreams" items={WORK} current={current} />
+        <NavGroup label="CEO System" items={STUDIO} current={current} />
         <NavGroup label="Studio Tools" items={FUTURE} current={current} />
       </SidebarContent>
       <SidebarFooter className="gap-3 p-4">
@@ -167,7 +178,7 @@ export function AppSidebar() {
           <Heart className="mx-auto mt-2 h-4 w-4 fill-blush text-orchid" />
         </div>
         <Link
-          to="/import-tasks"
+          to="/brain-dump"
           className="active-nav-pill inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-[0_12px_26px_rgba(75,22,69,0.24)]"
         >
           <Plus className="h-4 w-4" />

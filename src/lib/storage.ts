@@ -4,6 +4,13 @@ export const STORAGE_KEYS = {
   weeklyFocus: "bc:weeklyFocus",
   reminder: "bc:reminder",
   weeklyNotes: "bc:weeklyNotes",
+  companyGoal: "bc:companyGoal",
+  weeklyPlan: "bc:weeklyPlan",
+  productCatalog: "bc:productCatalog",
+  frameworkLibrary: "bc:frameworkLibrary",
+  capturedInsights: "bc:capturedInsights",
+  brainDumpDraft: "bc:brainDumpDraft",
+  continueWorking: "bc:continueWorking",
 } as const;
 
 export function loadJSON<T>(key: string, fallback: T): T {

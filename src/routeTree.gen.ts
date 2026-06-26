@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeeklyPlanningRouteImport } from './routes/weekly-planning'
 import { Route as WeeklyLogRouteImport } from './routes/weekly-log'
 import { Route as WebsiteRouteImport } from './routes/website'
 import { Route as TodayRouteImport } from './routes/today'
@@ -16,14 +17,23 @@ import { Route as SocialMediaAppRouteImport } from './routes/social-media-app'
 import { Route as SocialMediaRouteImport } from './routes/social-media'
 import { Route as RiseRouteImport } from './routes/rise'
 import { Route as RebuildRouteImport } from './routes/rebuild'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ParkingLotRouteImport } from './routes/parking-lot'
 import { Route as MeetAtTheHealRouteImport } from './routes/meet-at-the-heal'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LandRouteImport } from './routes/land'
 import { Route as KitFactoryAppRouteImport } from './routes/kit-factory-app'
 import { Route as ImportTasksRouteImport } from './routes/import-tasks'
+import { Route as FrameworksRouteImport } from './routes/frameworks'
 import { Route as BrandRouteImport } from './routes/brand'
+import { Route as BrainDumpRouteImport } from './routes/brain-dump'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WeeklyPlanningRoute = WeeklyPlanningRouteImport.update({
+  id: '/weekly-planning',
+  path: '/weekly-planning',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WeeklyLogRoute = WeeklyLogRouteImport.update({
   id: '/weekly-log',
   path: '/weekly-log',
@@ -59,6 +69,11 @@ const RebuildRoute = RebuildRouteImport.update({
   path: '/rebuild',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ParkingLotRoute = ParkingLotRouteImport.update({
   id: '/parking-lot',
   path: '/parking-lot',
@@ -67,6 +82,11 @@ const ParkingLotRoute = ParkingLotRouteImport.update({
 const MeetAtTheHealRoute = MeetAtTheHealRouteImport.update({
   id: '/meet-at-the-heal',
   path: '/meet-at-the-heal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LandRoute = LandRouteImport.update({
@@ -84,9 +104,19 @@ const ImportTasksRoute = ImportTasksRouteImport.update({
   path: '/import-tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FrameworksRoute = FrameworksRouteImport.update({
+  id: '/frameworks',
+  path: '/frameworks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrandRoute = BrandRouteImport.update({
   id: '/brand',
   path: '/brand',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrainDumpRoute = BrainDumpRouteImport.update({
+  id: '/brain-dump',
+  path: '/brain-dump',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -97,12 +127,16 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/brain-dump': typeof BrainDumpRoute
   '/brand': typeof BrandRoute
+  '/frameworks': typeof FrameworksRoute
   '/import-tasks': typeof ImportTasksRoute
   '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
+  '/library': typeof LibraryRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/products': typeof ProductsRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
   '/social-media': typeof SocialMediaRoute
@@ -110,15 +144,20 @@ export interface FileRoutesByFullPath {
   '/today': typeof TodayRoute
   '/website': typeof WebsiteRoute
   '/weekly-log': typeof WeeklyLogRoute
+  '/weekly-planning': typeof WeeklyPlanningRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/brain-dump': typeof BrainDumpRoute
   '/brand': typeof BrandRoute
+  '/frameworks': typeof FrameworksRoute
   '/import-tasks': typeof ImportTasksRoute
   '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
+  '/library': typeof LibraryRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/products': typeof ProductsRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
   '/social-media': typeof SocialMediaRoute
@@ -126,16 +165,21 @@ export interface FileRoutesByTo {
   '/today': typeof TodayRoute
   '/website': typeof WebsiteRoute
   '/weekly-log': typeof WeeklyLogRoute
+  '/weekly-planning': typeof WeeklyPlanningRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/brain-dump': typeof BrainDumpRoute
   '/brand': typeof BrandRoute
+  '/frameworks': typeof FrameworksRoute
   '/import-tasks': typeof ImportTasksRoute
   '/kit-factory-app': typeof KitFactoryAppRoute
   '/land': typeof LandRoute
+  '/library': typeof LibraryRoute
   '/meet-at-the-heal': typeof MeetAtTheHealRoute
   '/parking-lot': typeof ParkingLotRoute
+  '/products': typeof ProductsRoute
   '/rebuild': typeof RebuildRoute
   '/rise': typeof RiseRoute
   '/social-media': typeof SocialMediaRoute
@@ -143,17 +187,22 @@ export interface FileRoutesById {
   '/today': typeof TodayRoute
   '/website': typeof WebsiteRoute
   '/weekly-log': typeof WeeklyLogRoute
+  '/weekly-planning': typeof WeeklyPlanningRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/brain-dump'
     | '/brand'
+    | '/frameworks'
     | '/import-tasks'
     | '/kit-factory-app'
     | '/land'
+    | '/library'
     | '/meet-at-the-heal'
     | '/parking-lot'
+    | '/products'
     | '/rebuild'
     | '/rise'
     | '/social-media'
@@ -161,15 +210,20 @@ export interface FileRouteTypes {
     | '/today'
     | '/website'
     | '/weekly-log'
+    | '/weekly-planning'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/brain-dump'
     | '/brand'
+    | '/frameworks'
     | '/import-tasks'
     | '/kit-factory-app'
     | '/land'
+    | '/library'
     | '/meet-at-the-heal'
     | '/parking-lot'
+    | '/products'
     | '/rebuild'
     | '/rise'
     | '/social-media'
@@ -177,15 +231,20 @@ export interface FileRouteTypes {
     | '/today'
     | '/website'
     | '/weekly-log'
+    | '/weekly-planning'
   id:
     | '__root__'
     | '/'
+    | '/brain-dump'
     | '/brand'
+    | '/frameworks'
     | '/import-tasks'
     | '/kit-factory-app'
     | '/land'
+    | '/library'
     | '/meet-at-the-heal'
     | '/parking-lot'
+    | '/products'
     | '/rebuild'
     | '/rise'
     | '/social-media'
@@ -193,16 +252,21 @@ export interface FileRouteTypes {
     | '/today'
     | '/website'
     | '/weekly-log'
+    | '/weekly-planning'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BrainDumpRoute: typeof BrainDumpRoute
   BrandRoute: typeof BrandRoute
+  FrameworksRoute: typeof FrameworksRoute
   ImportTasksRoute: typeof ImportTasksRoute
   KitFactoryAppRoute: typeof KitFactoryAppRoute
   LandRoute: typeof LandRoute
+  LibraryRoute: typeof LibraryRoute
   MeetAtTheHealRoute: typeof MeetAtTheHealRoute
   ParkingLotRoute: typeof ParkingLotRoute
+  ProductsRoute: typeof ProductsRoute
   RebuildRoute: typeof RebuildRoute
   RiseRoute: typeof RiseRoute
   SocialMediaRoute: typeof SocialMediaRoute
@@ -210,10 +274,18 @@ export interface RootRouteChildren {
   TodayRoute: typeof TodayRoute
   WebsiteRoute: typeof WebsiteRoute
   WeeklyLogRoute: typeof WeeklyLogRoute
+  WeeklyPlanningRoute: typeof WeeklyPlanningRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/weekly-planning': {
+      id: '/weekly-planning'
+      path: '/weekly-planning'
+      fullPath: '/weekly-planning'
+      preLoaderRoute: typeof WeeklyPlanningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/weekly-log': {
       id: '/weekly-log'
       path: '/weekly-log'
@@ -263,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RebuildRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/parking-lot': {
       id: '/parking-lot'
       path: '/parking-lot'
@@ -275,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/meet-at-the-heal'
       fullPath: '/meet-at-the-heal'
       preLoaderRoute: typeof MeetAtTheHealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/land': {
@@ -298,11 +384,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportTasksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/frameworks': {
+      id: '/frameworks'
+      path: '/frameworks'
+      fullPath: '/frameworks'
+      preLoaderRoute: typeof FrameworksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/brand': {
       id: '/brand'
       path: '/brand'
       fullPath: '/brand'
       preLoaderRoute: typeof BrandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brain-dump': {
+      id: '/brain-dump'
+      path: '/brain-dump'
+      fullPath: '/brain-dump'
+      preLoaderRoute: typeof BrainDumpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -317,12 +417,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BrainDumpRoute: BrainDumpRoute,
   BrandRoute: BrandRoute,
+  FrameworksRoute: FrameworksRoute,
   ImportTasksRoute: ImportTasksRoute,
   KitFactoryAppRoute: KitFactoryAppRoute,
   LandRoute: LandRoute,
+  LibraryRoute: LibraryRoute,
   MeetAtTheHealRoute: MeetAtTheHealRoute,
   ParkingLotRoute: ParkingLotRoute,
+  ProductsRoute: ProductsRoute,
   RebuildRoute: RebuildRoute,
   RiseRoute: RiseRoute,
   SocialMediaRoute: SocialMediaRoute,
@@ -330,6 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   TodayRoute: TodayRoute,
   WebsiteRoute: WebsiteRoute,
   WeeklyLogRoute: WeeklyLogRoute,
+  WeeklyPlanningRoute: WeeklyPlanningRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

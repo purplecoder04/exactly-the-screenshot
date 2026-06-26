@@ -64,7 +64,7 @@ function TodayPage() {
           <>
             <Button asChild variant="outline">
               <Link to="/import-tasks">
-                <FileUp className="mr-1 h-4 w-4" /> Import Tasks
+                <FileUp className="mr-1 h-4 w-4" /> Import Work Session
               </Link>
             </Button>
             <Button

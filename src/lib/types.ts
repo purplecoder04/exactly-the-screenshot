@@ -52,6 +52,34 @@ export type ProjectType = (typeof PROJECT_TYPES)[number];
 export const PARKING_LOT_DECISIONS = ["Keep", "Maybe", "Later"] as const;
 export type ParkingLotDecision = (typeof PARKING_LOT_DECISIONS)[number];
 
+export const PRODUCT_STATUSES = ["Idea", "Building", "Active", "Paused", "Complete"] as const;
+export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+
+export const PRODUCT_CATALOG_TYPES = [
+  "Lesson Guide",
+  "Workbook",
+  "Quiz",
+  "App",
+  "Website",
+  "Bundle",
+  "Bridge Product",
+  "Book",
+  "Course",
+  "Other",
+] as const;
+export type ProductCatalogType = (typeof PRODUCT_CATALOG_TYPES)[number];
+
+export const WORK_SESSION_CATEGORIES = [
+  "Task",
+  "Idea",
+  "Framework",
+  "Product Update",
+  "Meeting Note",
+  "Founder Note",
+  "Prompt Idea",
+] as const;
+export type WorkSessionCategory = (typeof WORK_SESSION_CATEGORIES)[number];
+
 export type TaskItem = {
   id: string;
   title: string;
@@ -69,6 +97,12 @@ export type TaskItem = {
   updatedAt: string;
   completedAt?: string;
   rolloverCount?: number;
+};
+
+export type CompanyGoal = {
+  title: string;
+  notes: string;
+  updatedAt: string;
 };
 
 export type ParkingLotItem = {
@@ -98,6 +132,75 @@ export type WeeklyNote = {
   note: string;
   date: string;
   createdAt: string;
+};
+
+export type WeeklyPlan = {
+  weeklyGoal: string;
+  topProjects: string[];
+  biggestRisk: string;
+  waitingOn: string;
+  successThisWeek: string;
+  updatedAt: string;
+};
+
+export type ProductCatalogItem = {
+  id: string;
+  name: string;
+  branch: WorkspaceArea;
+  areaType: AreaType;
+  collection: string;
+  type: ProductCatalogType;
+  status: ProductStatus;
+  lessonGuide: string;
+  workbook: string;
+  quiz: string;
+  app: string;
+  website: string;
+  bundle: string;
+  bridgeProduct: string;
+  version: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type FrameworkItem = {
+  id: string;
+  name: string;
+  definition: string;
+  purpose: string;
+  relatedBooks: string;
+  relatedQuizzes: string;
+  relatedApps: string;
+  relatedLessons: string;
+  relatedSocialPosts: string;
+  relatedProducts: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CapturedInsight = {
+  id: string;
+  category: Exclude<WorkSessionCategory, "Task" | "Idea" | "Framework">;
+  title: string;
+  body: string;
+  branch?: WorkspaceArea;
+  project?: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ContinueWorkingState = {
+  lastBranch: WorkspaceArea | "";
+  lastProduct: string;
+  lastLesson: string;
+  lastWorkbook: string;
+  lastApp: string;
+  lastPage: string;
+  taskId?: string;
+  updatedAt: string;
 };
 
 export function areaTypeFor(area: WorkspaceArea): AreaType {

@@ -34,18 +34,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { useTasks } from "@/hooks/useTasks";
 import { useParkingLot } from "@/hooks/useParkingLot";
 import { useWeeklyFocus, useReminder } from "@/hooks/useWeeklyData";
-import { PriorityBadge, StatusBadge } from "@/components/shared/Badges";
-import { AreaPill } from "@/components/shared/AreaPill";
+import { useContinueWorking } from "@/hooks/useContinueWorking";
+import { CompanyGoalCard } from "@/components/dashboard/CompanyGoalCard";
+import { DecisionEngineCard } from "@/components/dashboard/DecisionEngineCard";
+import { SmartProgressCard } from "@/components/dashboard/SmartProgressCard";
+import { PriorityBadge } from "@/components/shared/Badges";
 import { TaskDialog } from "@/components/shared/TaskDialog";
 import { ParkingLotDialog } from "@/components/shared/ParkingLotDialog";
 import { cn } from "@/lib/utils";
 import { plannerAssets, type PlannerAssetName } from "@/lib/plannerAssets";
-import type { TaskItem, WorkspaceArea } from "@/lib/types";
+import type { ContinueWorkingState, TaskItem, WorkspaceArea } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -116,14 +118,15 @@ const WORKSPACES = [
   { title: "Workbook Studio", url: "/rise", icon: BookOpen, tint: "text-orchid bg-blush/25" },
   { title: "Content Studio", url: "/social-media", icon: Camera, tint: "text-gold bg-gold/20" },
   { title: "Website Studio", url: "/website", icon: Monitor, tint: "text-powder-blue bg-powder-blue/30" },
-  { title: "Resource Library", url: "/weekly-log", icon: Library, tint: "text-green-muted bg-sage/45" },
+  { title: "Resource Library", url: "/library", icon: Library, tint: "text-green-muted bg-sage/45" },
 ];
 
 function Dashboard() {
-  const { tasks, addTask, updateTask, toggleDone, endDayRollover, stats } = useTasks();
+  const { tasks, addTask, updateTask, endDayRollover } = useTasks();
   const { items: ideas, addItem } = useParkingLot();
   const { focus } = useWeeklyFocus();
   const { reminder } = useReminder();
+  const { state: continueState, rememberTask } = useContinueWorking();
 
   const [taskOpen, setTaskOpen] = useState(false);
   const [ideaOpen, setIdeaOpen] = useState(false);
@@ -139,7 +142,6 @@ function Dashboard() {
     [tasks],
   );
 
-  const missionTasks = todayTasks.slice(0, 3);
   const continueTask = todayTasks[0] ?? tasks.find((task) => !task.isDone) ?? tasks[0];
   const completedThisMonth = tasks.filter((task) => task.isDone).length;
   const gardenProgress = Math.min(100, Math.round((completedThisMonth / Math.max(tasks.length, 1)) * 100));
@@ -152,32 +154,13 @@ function Dashboard() {
 
   return (
     <div className="space-y-5 pb-4">
+      <CompanyGoalCard />
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_370px]">
         <div className="space-y-5">
-          <PlannerSection
-            title="Today's Mission"
-            subtitle="Focus on your Top 3 and make the day count."
-            action={
-              <Link to="/today" className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft hover:text-plum-deep">
-                View All Tasks <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            }
-          >
-            <div className="grid gap-3 lg:grid-cols-3">
-              {[0, 1, 2].map((index) => (
-                <MissionTaskCard
-                  key={missionTasks[index]?.id ?? index}
-                  index={index}
-                  task={missionTasks[index]}
-                  onToggle={toggleDone}
-                  onEdit={openTask}
-                />
-              ))}
-            </div>
-          </PlannerSection>
+          <DecisionEngineCard />
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_0.9fr]">
-            <ContinueWorkingCard task={continueTask} />
+            <ContinueWorkingCard task={continueTask} state={continueState} onResume={rememberTask} />
             <WorkspacesCard />
           </div>
 
@@ -200,6 +183,7 @@ function Dashboard() {
 
         <aside className="space-y-4">
           <DailyInspirationCard reminder={reminder} />
+          <SmartProgressCard />
           <ProgressGardenCard completed={completedThisMonth} progress={gardenProgress} />
           <IdeaGardenCard count={ideas.length} />
           <QuickActions
@@ -349,8 +333,19 @@ function MissionTaskCard({
   );
 }
 
-function ContinueWorkingCard({ task }: { task?: TaskItem }) {
-  const areaUrl = task ? AREA_ROUTES[task.branch] : "/today";
+function ContinueWorkingCard({
+  task,
+  state,
+  onResume,
+}: {
+  task?: TaskItem;
+  state: ContinueWorkingState;
+  onResume: (task: TaskItem) => void;
+}) {
+  const areaUrl = state.lastPage || (task ? AREA_ROUTES[task.branch] : "/today");
+  const title = state.lastProduct || task?.project || task?.title || "Choose your next beautiful thing";
+  const subtitle = state.lastLesson || state.lastWorkbook || task?.type || "Creative Project";
+  const nextStep = task?.nextStep || "Open the studio and keep moving.";
   return (
     <section className="planner-card overflow-hidden rounded-2xl p-4 md:p-5">
       <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-ink">
@@ -369,19 +364,24 @@ function ContinueWorkingCard({ task }: { task?: TaskItem }) {
         <div className="flex flex-col justify-center gap-3">
           <div>
             <h3 className="font-display text-3xl leading-tight text-ink">
-              {task?.project ?? task?.title ?? "Choose your next beautiful thing"}
+              {title}
             </h3>
-            <p className="mt-1 text-sm font-semibold text-plum-soft">{task?.type ?? "Creative Project"}</p>
-            <p className="text-sm text-muted-foreground">{task?.nextStep || "Open the studio and keep moving."}</p>
+            <p className="mt-1 text-sm font-semibold text-plum-soft">{subtitle}</p>
+            <p className="text-sm text-muted-foreground">{nextStep}</p>
+            {state.lastBranch && (
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Last branch: {state.lastBranch}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Progress value={70} className="h-2 bg-blush/35" />
             <p className="text-xs font-semibold text-ink/75">70% Complete</p>
           </div>
           <Button asChild className="w-fit">
-            <a href={areaUrl}>
+            <a href={areaUrl} onClick={() => task && onResume(task)}>
               <Play className="h-4 w-4 fill-current" />
-              Continue Working
+              Resume
             </a>
           </Button>
         </div>
@@ -522,7 +522,7 @@ function QuickActions({
     { label: "New Task", icon: CheckSquare2, onClick: onNewTask },
     { label: "New Note", icon: NotebookPen, onClick: () => toast.info("Weekly note capture is getting its planner pass in Stage 2.") },
     { label: "Schedule", icon: Calendar, onClick: () => toast.info("Schedule is a future studio tool.") },
-    { label: "Brain Dump", icon: Brain, onClick: () => toast.info("Brain Dump is a future studio tool.") },
+    { label: "Brain Dump", icon: Brain, onClick: () => { window.location.href = "/brain-dump"; } },
     { label: "Add Idea", icon: FilePlus2, onClick: onNewIdea },
   ];
 
