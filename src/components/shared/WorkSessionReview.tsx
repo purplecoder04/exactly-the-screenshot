@@ -477,7 +477,7 @@ function getTitleLabel(category: WorkSessionCategory) {
   if (category === "Product" || category === "Product Update") return "Product Name";
   if (category === "Parking Lot") return "Idea Garden Title";
   if (category === "License Rule") return "License Rule";
-  if (category === "Current Goal") return "Goal Note";
+  if (category === "Captured Insight") return "Insight";
   if (category === "Task") return "Task Title";
   return "Title";
 }

@@ -66,12 +66,12 @@ function scoreTask(
     reasons.push(`Blocks ${blocksCount} project${blocksCount === 1 ? "" : "s"}`);
   }
 
-  if (goalMatches(task, weeklyPlan.weeklyGoal)) {
+  if (focusMatches(task, weeklyPlan.weeklyFocus)) {
     score += 28;
-    reasons.push("Supports weekly goal");
+    reasons.push("Supports weekly focus");
   }
 
-  if (weeklyPlan.topProjects.some((project) => goalMatches(task, project))) {
+  if (weeklyPlan.topProjects.some((project) => focusMatches(task, project))) {
     score += 18;
     reasons.push("Matches this week's Top 3 projects");
   }
@@ -85,6 +85,11 @@ function scoreTask(
   score += impactScore;
   if (impactScore >= 20) reasons.push("High company impact");
 
+  if (hasRevenueLanguage(task)) {
+    score += 12;
+    reasons.push("Revenue or offer impact");
+  }
+
   if (task.isToday) {
     score += 8;
     reasons.push("Already marked for Today");
@@ -93,6 +98,16 @@ function scoreTask(
   if (task.status === "Waiting") {
     score += 6;
     reasons.push("Waiting item to unblock");
+  }
+
+  if (hasDeadlineLanguage(task)) {
+    score += 10;
+    reasons.push("Deadline-sensitive");
+  }
+
+  if (isLowEffort(task)) {
+    score += 8;
+    reasons.push("Lower effort win");
   }
 
   return {
@@ -131,12 +146,30 @@ function estimateMinutes(task: TaskItem) {
   return 30;
 }
 
-function goalMatches(task: TaskItem, value: string) {
+function focusMatches(task: TaskItem, value: string) {
   const tokens = tokenize(value);
   if (tokens.length === 0) return false;
   const haystack =
     `${task.title} ${task.project ?? ""} ${task.nextStep} ${task.notes}`.toLowerCase();
   return tokens.some((token) => haystack.includes(token));
+}
+
+function hasDeadlineLanguage(task: TaskItem) {
+  return /\b(deadline|due|launch|ship|publish|today|tomorrow|this week|by friday|urgent)\b/i.test(
+    `${task.title} ${task.nextStep} ${task.notes}`,
+  );
+}
+
+function hasRevenueLanguage(task: TaskItem) {
+  return /\b(revenue|sales|sell|offer|pricing|checkout|customer|client|launch|bundle|product|shop)\b/i.test(
+    `${task.title} ${task.project ?? ""} ${task.nextStep} ${task.notes}`,
+  );
+}
+
+function isLowEffort(task: TaskItem) {
+  const text = `${task.title} ${task.nextStep} ${task.notes}`;
+  if (/\b(quick|small|simple|polish|review|check|send|call)\b/i.test(text)) return true;
+  return task.type === "Task" && task.priority !== "High";
 }
 
 function tokenize(value: string) {

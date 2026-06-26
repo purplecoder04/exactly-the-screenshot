@@ -28,10 +28,21 @@ export function SmartProgressCard() {
   );
   const rolloverHeavy = tasks.filter((task) => !task.isDone && (task.rolloverCount ?? 0) >= 2);
   const waitingItems = tasks.filter((task) => !task.isDone && task.status === "Waiting");
-  const weeklyGoalTasks = tasks.filter((task) => taskMatchesGoal(task, plan.weeklyGoal));
-  const weeklyGoalDone = weeklyGoalTasks.filter((task) => task.isDone).length;
-  const weeklyGoalProgress = Math.round(
-    (weeklyGoalDone / Math.max(weeklyGoalTasks.length, 1)) * 100,
+  const weeklyPriorityTasks = tasks.filter((task) => taskMatchesWeeklyPlan(task, plan));
+  const weeklyPriorityDone = weeklyPriorityTasks.filter((task) => task.isDone).length;
+  const weeklyPriorityProgress = Math.round(
+    (weeklyPriorityDone / Math.max(weeklyPriorityTasks.length, 1)) * 100,
+  );
+  const productProgress = Math.round(
+    (products.filter((product) => product.status === "Complete" || product.status === "Active")
+      .length /
+      Math.max(products.length, 1)) *
+      100,
+  );
+  const frameworkProgress = Math.round(
+    (frameworks.filter((framework) => framework.status === "Active").length /
+      Math.max(frameworks.length, 1)) *
+      100,
   );
   const overall = Math.round(
     ((completedTasks + products.filter((product) => product.status === "Complete").length) /
@@ -84,13 +95,23 @@ export function SmartProgressCard() {
       </div>
       <div className="mt-3 grid gap-2 text-sm">
         <ProgressSignal
-          label="Weekly Goal Progress"
-          value={`${weeklyGoalProgress}%`}
+          label="Weekly Priority Progress"
+          value={`${weeklyPriorityProgress}%`}
           detail={
-            weeklyGoalTasks.length > 0
-              ? `${weeklyGoalDone} of ${weeklyGoalTasks.length} related tasks complete.`
-              : "No linked tasks yet. Add a task that names this weekly goal when you are ready."
+            weeklyPriorityTasks.length > 0
+              ? `${weeklyPriorityDone} of ${weeklyPriorityTasks.length} weekly-focus or Top 3 tasks complete.`
+              : "No linked tasks yet. Add a task that names this weekly focus or a Top 3 project when you are ready."
           }
+        />
+        <ProgressSignal
+          label="Product Progress"
+          value={`${productProgress}%`}
+          detail={`${products.filter((product) => product.status === "Complete" || product.status === "Active").length} of ${products.length} products are active or complete.`}
+        />
+        <ProgressSignal
+          label="Framework Progress"
+          value={`${frameworkProgress}%`}
+          detail={`${frameworks.filter((framework) => framework.status === "Active").length} of ${frameworks.length} frameworks are active.`}
         />
         <ProgressSignal
           label="Stale High-Priority Tasks"
@@ -157,8 +178,12 @@ function daysSince(value: string) {
   return Math.floor((Date.now() - time) / 86_400_000);
 }
 
-function taskMatchesGoal(task: TaskItem, goal: string) {
-  const tokens = goal
+function taskMatchesWeeklyPlan(
+  task: TaskItem,
+  plan: { weeklyFocus: string; topProjects: string[] },
+) {
+  const tokens = [plan.weeklyFocus, ...plan.topProjects]
+    .join(" ")
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length > 3);

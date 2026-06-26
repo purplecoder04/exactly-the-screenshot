@@ -41,9 +41,9 @@ const PREFIX_CATEGORY: Array<[RegExp, WorkSessionCategory]> = [
   [/^\s*Product Update:\s*(.+?)\s*$/i, "Product Update"],
   [/^\s*Meeting Note:\s*(.+?)\s*$/i, "Meeting Note"],
   [/^\s*License Rule:\s*(.+?)\s*$/i, "License Rule"],
-  [/^\s*(Current Goal|Weekly Goal):\s*(.+?)\s*$/i, "Current Goal"],
   [/^\s*(Note|Class Notes|Personal Note):\s*(.+?)\s*$/i, "Note"],
   [/^\s*Founder Note:\s*(.+?)\s*$/i, "Founder Note"],
+  [/^\s*Captured Insight:\s*(.+?)\s*$/i, "Captured Insight"],
   [/^\s*(Prompt|Prompt Idea):\s*(.+?)\s*$/i, "Prompt Idea"],
 ];
 
@@ -99,10 +99,6 @@ const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[
   {
     category: "License Rule",
     patterns: [/\blicense rule\b/i, /\blicensing rule\b/i],
-  },
-  {
-    category: "Current Goal",
-    patterns: [/\bcurrent goal:\s*/i, /\bweekly goal:\s*/i],
   },
   {
     category: "Note",
@@ -224,6 +220,7 @@ function segmentToDraft(
 ): WorkSessionDraft | null {
   const cleaned = cleanSegment(segment);
   if (!cleaned) return null;
+  if (isRemovedPlanningLabel(cleaned)) return null;
 
   const prefixed = prefixMatch(cleaned);
   const body = prefixed?.value ?? stripInlinePrefix(cleaned);
@@ -277,6 +274,14 @@ function cleanSegment(value: string) {
     .trim();
 }
 
+function isRemovedPlanningLabel(value: string) {
+  const lower = value.toLowerCase();
+  const label = lower.slice(0, lower.indexOf(":") + 1);
+  if (!label) return false;
+  const removed = ["current company", "current", "company"].map((prefix) => `${prefix} goal:`);
+  return removed.includes(label.trim());
+}
+
 function prefixMatch(value: string) {
   for (const [regex, category] of PREFIX_CATEGORY) {
     const match = value.match(regex);
@@ -303,7 +308,7 @@ function stripInlinePrefix(value: string) {
       /^\s*(decision|idea|framework|product|product update|meeting note|note|class notes|personal note|founder note|prompt|prompt idea|rule):\s*/i,
       "",
     )
-    .replace(/^\s*(parking lot|idea garden|license rule|current goal|weekly goal):\s*/i, "")
+    .replace(/^\s*(parking lot|idea garden|license rule|captured insight):\s*/i, "")
     .trim();
 }
 

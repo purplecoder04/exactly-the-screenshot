@@ -66,7 +66,7 @@ export const WORK_SESSION_CATEGORIES = [
   "Product Update",
   "Meeting Note",
   "License Rule",
-  "Current Goal",
+  "Captured Insight",
   "Note",
   "Founder Note",
   "Prompt Idea",
@@ -161,7 +161,7 @@ export type WeeklyNote = {
 };
 
 export type WeeklyPlan = {
-  weeklyGoal: string;
+  weeklyFocus: string;
   topProjects: string[];
   biggestRisk: string;
   waitingOn: string;

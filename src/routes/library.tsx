@@ -50,7 +50,11 @@ export const Route = createFileRoute("/library")({
 });
 
 const SECTIONS = [
-  { title: "Company", url: "/", description: "Goals, weekly planning, CEO decisions." },
+  {
+    title: "Company",
+    url: "/",
+    description: "Weekly planning, CEO decisions, and operating notes.",
+  },
   { title: "Brand", url: "/brand", description: "Voice, offers, positioning, bibles." },
   { title: "Rise", url: "/rise", description: "Women, repair, return, emotional clarity." },
   { title: "Land", url: "/land", description: "Men, leadership, grounded action." },

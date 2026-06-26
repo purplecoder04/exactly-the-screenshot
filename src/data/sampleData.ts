@@ -365,7 +365,7 @@ export const SAMPLE_WEEKLY_NOTES: WeeklyNote[] = [
 ];
 
 export const SAMPLE_WEEKLY_PLAN: WeeklyPlan = {
-  weeklyGoal: "Move Why Do Men Come Back from draft into a usable lesson guide path.",
+  weeklyFocus: "Move Why Do Men Come Back from draft into a usable lesson guide path.",
   topProjects: ["Why Do Men Come Back", "Kit Factory App", "Return Series Hooks"],
   biggestRisk: "Spreading attention across too many branches before the core offer is ready.",
   waitingOn: "Final lesson outline and workbook flow decisions.",

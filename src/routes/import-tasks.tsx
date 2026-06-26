@@ -84,7 +84,7 @@ function ImportWorkSessionPage() {
     setStatus("review");
     if (parsedDrafts.length === 0) {
       setError(
-        "No structured items found. Try Task:, Idea:, Parking Lot:, Framework:, Product:, Product Update:, Decision:, License Rule:, Current Goal:, Meeting Note:, Founder Note:, or Prompt:.",
+        "No structured items found. Try Task:, Decision:, Product:, Framework:, Parking Lot:, License Rule:, Note:, Captured Insight:, Meeting Note:, Founder Note:, or Prompt:.",
       );
     }
   };
@@ -129,7 +129,7 @@ function ImportWorkSessionPage() {
       <PlannerPageHeader
         eyebrow="Work Session Import"
         title="Import Work Session"
-        description="Upload a local TXT, MD, or DOCX session and review proposed tasks, ideas, frameworks, product updates, meeting notes, prompt ideas, and founder notes before saving."
+        description="Upload or paste work and review proposed decisions, products, frameworks, tasks, Idea Garden items, license rules, notes, and captured insights before saving."
         decorAsset={plannerAssets.bookJournal}
         decorClassName="right-10 top-4 h-32 w-32 rotate-[-5deg] opacity-25"
         actions={
@@ -205,8 +205,12 @@ function ImportWorkSessionPage() {
             onChange={(event) => setPastedText(event.target.value)}
             rows={9}
             className="min-h-56 bg-warm-white/85 text-sm leading-relaxed"
-            placeholder="Paste a long work session here. Labels like Task:, Decision:, Product:, Framework:, Parking Lot:, License Rule:, and Current Goal: make routing stronger."
+            placeholder="Paste a long work session here. Labels like Task:, Decision:, Product:, Framework:, Parking Lot:, License Rule:, Note:, and Captured Insight: make routing stronger."
           />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Supported labels: Decision, Product, Framework, Task, Parking Lot, License Rule, Note,
+            Captured Insight.
+          </p>
           <div className="flex justify-end">
             <Button onClick={() => void analyzePastedText()} disabled={isParsing}>
               <Sparkles className="mr-1 h-4 w-4" />
