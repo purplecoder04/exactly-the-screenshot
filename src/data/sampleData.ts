@@ -444,6 +444,8 @@ export const SAMPLE_FRAMEWORKS: FrameworkItem[] = [
   {
     id: "fw1",
     name: "Behavior is a Language",
+    status: "Active",
+    primaryUse: "Teaching",
     definition:
       "Behavior communicates patterns, priorities, fear, capacity, and care before words can dress them up.",
     purpose: "Help the reader interpret repeated behavior without over-explaining it away.",
@@ -460,6 +462,8 @@ export const SAMPLE_FRAMEWORKS: FrameworkItem[] = [
   {
     id: "fw2",
     name: "Return vs Repair",
+    status: "Active",
+    primaryUse: "Product",
     definition:
       "A return is a re-entry. Repair is changed behavior, truth, accountability, and a safer pattern.",
     purpose: "Separate emotional relief from actual relationship progress.",
@@ -476,6 +480,8 @@ export const SAMPLE_FRAMEWORKS: FrameworkItem[] = [
   {
     id: "fw3",
     name: "Doorway Test",
+    status: "Draft",
+    primaryUse: "Decision",
     definition:
       "A decision filter for whether a conversation, offer, or next step opens the right door for the person in front of you.",
     purpose: "Keep products and content simple, emotionally precise, and action-oriented.",

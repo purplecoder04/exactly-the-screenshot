@@ -68,6 +68,7 @@ export function WorkSessionReview({
             <SummaryPill>{summary.ideas} Ideas</SummaryPill>
             <SummaryPill>{summary.frameworks} Frameworks</SummaryPill>
             <SummaryPill>{summary.products} Products</SummaryPill>
+            <SummaryPill>{summary.decisions} Decisions</SummaryPill>
             <SummaryPill>Selected: {selectedCount}</SummaryPill>
           </div>
           <Button disabled={selectedCount === 0} onClick={onSave} className="w-full lg:w-auto">
@@ -150,7 +151,7 @@ function ReviewCard({
   const isCollapsed = Boolean(draft.collapsed);
   const isTask = draft.category === "Task";
   const isFramework = draft.category === "Framework";
-  const isIdea = draft.category === "Idea";
+  const isIdea = draft.category === "Idea" || draft.category === "Parking Lot";
   const isProduct = draft.category === "Product" || draft.category === "Product Update";
   const titleLabel = getTitleLabel(draft.category);
   const destination = draft.project?.trim() || draft.branch;
@@ -460,19 +461,23 @@ function summarizeDrafts(drafts: WorkSessionDraft[]) {
     (summary, draft) => {
       if (draft.selected && !draft.saved) summary.selected += 1;
       if (draft.category === "Task") summary.tasks += 1;
-      if (draft.category === "Idea") summary.ideas += 1;
+      if (draft.category === "Idea" || draft.category === "Parking Lot") summary.ideas += 1;
       if (draft.category === "Framework") summary.frameworks += 1;
       if (draft.category === "Product" || draft.category === "Product Update")
         summary.products += 1;
+      if (draft.category === "Decision") summary.decisions += 1;
       return summary;
     },
-    { selected: 0, tasks: 0, ideas: 0, frameworks: 0, products: 0 },
+    { selected: 0, tasks: 0, ideas: 0, frameworks: 0, products: 0, decisions: 0 },
   );
 }
 
 function getTitleLabel(category: WorkSessionCategory) {
   if (category === "Framework") return "Framework Title";
   if (category === "Product" || category === "Product Update") return "Product Name";
+  if (category === "Parking Lot") return "Idea Garden Title";
+  if (category === "License Rule") return "License Rule";
+  if (category === "Current Goal") return "Goal Note";
   if (category === "Task") return "Task Title";
   return "Title";
 }

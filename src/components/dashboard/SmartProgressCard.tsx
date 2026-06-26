@@ -2,20 +2,42 @@ import { BarChart3 } from "lucide-react";
 import { useFrameworkLibrary } from "@/hooks/useFrameworkLibrary";
 import { useProductCatalog } from "@/hooks/useProductCatalog";
 import { useTasks } from "@/hooks/useTasks";
-import { CORE_BRANCHES } from "@/lib/types";
+import { useWeeklyPlanning } from "@/hooks/useWeeklyPlanning";
+import { CORE_BRANCHES, type TaskItem } from "@/lib/types";
 
 export function SmartProgressCard() {
   const { tasks } = useTasks();
   const { products } = useProductCatalog();
   const { frameworks } = useFrameworkLibrary();
+  const { plan } = useWeeklyPlanning();
 
-  const booksCompleted = products.filter((product) => product.type === "Book" && product.status === "Complete").length;
-  const booksInProgress = products.filter((product) => product.type === "Book" && product.status === "Building").length;
+  const booksCompleted = products.filter(
+    (product) => product.type === "Book" && product.status === "Complete",
+  ).length;
+  const booksInProgress = products.filter(
+    (product) => product.type === "Book" && product.status === "Building",
+  ).length;
   const apps = products.filter((product) => product.type === "App" || product.app).length;
   const quizzes = products.filter((product) => product.quiz).length;
   const bundles = products.filter((product) => product.type === "Bundle" || product.bundle).length;
   const completedTasks = tasks.filter((task) => task.isDone).length;
-  const overall = Math.round(((completedTasks + products.filter((product) => product.status === "Complete").length) / Math.max(tasks.length + products.length, 1)) * 100);
+  const completedThisWeek = tasks.filter(isCompletedThisWeek);
+  const staleHighPriority = tasks.filter(
+    (task) =>
+      !task.isDone && task.priority === "High" && daysSince(task.updatedAt || task.createdAt) >= 7,
+  );
+  const rolloverHeavy = tasks.filter((task) => !task.isDone && (task.rolloverCount ?? 0) >= 2);
+  const waitingItems = tasks.filter((task) => !task.isDone && task.status === "Waiting");
+  const weeklyGoalTasks = tasks.filter((task) => taskMatchesGoal(task, plan.weeklyGoal));
+  const weeklyGoalDone = weeklyGoalTasks.filter((task) => task.isDone).length;
+  const weeklyGoalProgress = Math.round(
+    (weeklyGoalDone / Math.max(weeklyGoalTasks.length, 1)) * 100,
+  );
+  const overall = Math.round(
+    ((completedTasks + products.filter((product) => product.status === "Complete").length) /
+      Math.max(tasks.length + products.length, 1)) *
+      100,
+  );
 
   return (
     <section className="planner-card rounded-2xl p-4">
@@ -30,6 +52,8 @@ export function SmartProgressCard() {
         <ProgressMetric label="Quizzes" value={quizzes} />
         <ProgressMetric label="Frameworks" value={frameworks.length} />
         <ProgressMetric label="Bundles" value={bundles} />
+        <ProgressMetric label="Completed This Week" value={completedThisWeek.length} />
+        <ProgressMetric label="Waiting Items" value={waitingItems.length} />
       </div>
       <div className="mt-4 rounded-2xl border border-border/70 bg-warm-white/65 p-3">
         <div className="flex items-center justify-between gap-3 text-sm">
@@ -48,12 +72,44 @@ export function SmartProgressCard() {
                   <span>{percent}%</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-blush/30">
-                  <div className="h-full rounded-full bg-plum-soft" style={{ width: `${percent}%` }} />
+                  <div
+                    className="h-full rounded-full bg-plum-soft"
+                    style={{ width: `${percent}%` }}
+                  />
                 </div>
               </div>
             );
           })}
         </div>
+      </div>
+      <div className="mt-3 grid gap-2 text-sm">
+        <ProgressSignal
+          label="Weekly Goal Progress"
+          value={`${weeklyGoalProgress}%`}
+          detail={
+            weeklyGoalTasks.length > 0
+              ? `${weeklyGoalDone} of ${weeklyGoalTasks.length} related tasks complete.`
+              : "No linked tasks yet. Add a task that names this weekly goal when you are ready."
+          }
+        />
+        <ProgressSignal
+          label="Stale High-Priority Tasks"
+          value={String(staleHighPriority.length)}
+          detail={describeTaskList(
+            staleHighPriority,
+            "No high-priority tasks need a freshness check.",
+          )}
+        />
+        <ProgressSignal
+          label="Rollover-Heavy Tasks"
+          value={String(rolloverHeavy.length)}
+          detail={describeTaskList(rolloverHeavy, "No repeated rollovers right now.")}
+        />
+        <ProgressSignal
+          label="Waiting Pileup"
+          value={String(waitingItems.length)}
+          detail={describeWaiting(waitingItems)}
+        />
       </div>
     </section>
   );
@@ -63,7 +119,70 @@ function ProgressMetric({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl border border-border/70 bg-card/70 p-3">
       <div className="font-display text-2xl leading-none text-plum-soft">{value}</div>
-      <div className="mt-1 text-[11px] font-semibold leading-tight text-muted-foreground">{label}</div>
+      <div className="mt-1 text-[11px] font-semibold leading-tight text-muted-foreground">
+        {label}
+      </div>
     </div>
   );
+}
+
+function ProgressSignal({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border/70 bg-card/70 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="font-semibold text-ink">{label}</div>
+        <div className="font-display text-xl leading-none text-plum-soft">{value}</div>
+      </div>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{detail}</p>
+    </div>
+  );
+}
+
+function isCompletedThisWeek(task: TaskItem) {
+  if (!task.completedAt) return false;
+  return daysSince(task.completedAt) <= 7;
+}
+
+function daysSince(value: string) {
+  const time = new Date(value).getTime();
+  if (Number.isNaN(time)) return 0;
+  return Math.floor((Date.now() - time) / 86_400_000);
+}
+
+function taskMatchesGoal(task: TaskItem, goal: string) {
+  const tokens = goal
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 3);
+  if (tokens.length === 0) return false;
+  const haystack =
+    `${task.title} ${task.project ?? ""} ${task.nextStep} ${task.notes}`.toLowerCase();
+  return tokens.some((token) => haystack.includes(token));
+}
+
+function describeTaskList(tasks: TaskItem[], emptyMessage: string) {
+  if (tasks.length === 0) return emptyMessage;
+  return tasks
+    .slice(0, 2)
+    .map((task) => task.title)
+    .join(" • ");
+}
+
+function describeWaiting(tasks: TaskItem[]) {
+  if (tasks.length === 0) return "Nothing is waiting on someone or something else.";
+  const byBranch = tasks.reduce<Record<string, number>>((counts, task) => {
+    counts[task.branch] = (counts[task.branch] ?? 0) + 1;
+    return counts;
+  }, {});
+  return Object.entries(byBranch)
+    .map(([branch, count]) => `${branch}: ${count}`)
+    .join(" • ");
 }

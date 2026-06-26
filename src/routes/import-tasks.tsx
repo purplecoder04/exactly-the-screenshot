@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { FileText, RefreshCcw, Upload } from "lucide-react";
+import { ClipboardPaste, FileText, RefreshCcw, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PlannerPageHeader } from "@/components/shared/PlannerPageHeader";
 import { WorkSessionReview } from "@/components/shared/WorkSessionReview";
 import { useWorkSessionSaver } from "@/hooks/useWorkSessionSaver";
@@ -34,6 +35,7 @@ function ImportWorkSessionPage() {
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
   const [sourceText, setSourceText] = useState("");
+  const [pastedText, setPastedText] = useState("");
   const [drafts, setDrafts] = useState<WorkSessionDraft[]>([]);
   const [savedCount, setSavedCount] = useState(0);
   const { saveDrafts } = useWorkSessionSaver();
@@ -43,6 +45,7 @@ function ImportWorkSessionPage() {
     setError("");
     setFileName("");
     setSourceText("");
+    setPastedText("");
     setDrafts([]);
     setSavedCount(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -65,18 +68,41 @@ function ImportWorkSessionPage() {
     setIsParsing(true);
     try {
       const text = await extractTextFromFile(file);
-      const parsedDrafts = await parseTextToWorkSessionDrafts(text, file.name);
-      setSourceText(text);
-      setDrafts(parsedDrafts);
-      setStatus("review");
-      if (parsedDrafts.length === 0) {
-        setError(
-          "No structured lines found. Try TODO:, Task:, Next Step:, Fix:, Build:, Add:, Update:, Test:, Idea:, Framework:, Product Update:, Meeting Note:, Founder Note:, or Prompt:.",
-        );
-      }
+      await parseTextForReview(text, file.name);
     } catch (err) {
       setStatus("idle");
       setError(err instanceof Error ? err.message : "The document could not be imported.");
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
+  const parseTextForReview = async (text: string, label: string) => {
+    const parsedDrafts = await parseTextToWorkSessionDrafts(text, label);
+    setSourceText(text);
+    setDrafts(parsedDrafts);
+    setStatus("review");
+    if (parsedDrafts.length === 0) {
+      setError(
+        "No structured items found. Try Task:, Idea:, Parking Lot:, Framework:, Product:, Product Update:, Decision:, License Rule:, Current Goal:, Meeting Note:, Founder Note:, or Prompt:.",
+      );
+    }
+  };
+
+  const analyzePastedText = async () => {
+    if (!pastedText.trim()) {
+      toast.info("Paste a work session first.");
+      return;
+    }
+    setError("");
+    setFileName("Pasted Work Session");
+    setSavedCount(0);
+    setIsParsing(true);
+    try {
+      await parseTextForReview(pastedText, "Pasted Work Session");
+    } catch (err) {
+      setStatus("idle");
+      setError(err instanceof Error ? err.message : "The pasted work session could not be parsed.");
     } finally {
       setIsParsing(false);
     }
@@ -163,6 +189,30 @@ function ImportWorkSessionPage() {
               {error}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="planner-card overflow-hidden">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-plum-deep">
+            <ClipboardPaste className="h-4 w-4 text-plum-soft" />
+            Paste Work Session
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Textarea
+            value={pastedText}
+            onChange={(event) => setPastedText(event.target.value)}
+            rows={9}
+            className="min-h-56 bg-warm-white/85 text-sm leading-relaxed"
+            placeholder="Paste a long work session here. Labels like Task:, Decision:, Product:, Framework:, Parking Lot:, License Rule:, and Current Goal: make routing stronger."
+          />
+          <div className="flex justify-end">
+            <Button onClick={() => void analyzePastedText()} disabled={isParsing}>
+              <Sparkles className="mr-1 h-4 w-4" />
+              {isParsing ? "Analyzing..." : "Analyze Pasted Session"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

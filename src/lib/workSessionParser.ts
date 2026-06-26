@@ -34,11 +34,14 @@ export type WorkSessionDraft = {
 const PREFIX_CATEGORY: Array<[RegExp, WorkSessionCategory]> = [
   [/^\s*(TODO|Task|Next Step|Fix|Build|Add|Update|Test):\s*(.+?)\s*$/i, "Task"],
   [/^\s*Idea:\s*(.+?)\s*$/i, "Idea"],
+  [/^\s*(Parking Lot|Idea Garden):\s*(.+?)\s*$/i, "Parking Lot"],
   [/^\s*Framework:\s*(.+?)\s*$/i, "Framework"],
   [/^\s*Product:\s*(.+?)\s*$/i, "Product"],
   [/^\s*(Decision):\s*(.+?)\s*$/i, "Decision"],
   [/^\s*Product Update:\s*(.+?)\s*$/i, "Product Update"],
   [/^\s*Meeting Note:\s*(.+?)\s*$/i, "Meeting Note"],
+  [/^\s*License Rule:\s*(.+?)\s*$/i, "License Rule"],
+  [/^\s*(Current Goal|Weekly Goal):\s*(.+?)\s*$/i, "Current Goal"],
   [/^\s*(Note|Class Notes|Personal Note):\s*(.+?)\s*$/i, "Note"],
   [/^\s*Founder Note:\s*(.+?)\s*$/i, "Founder Note"],
   [/^\s*(Prompt|Prompt Idea):\s*(.+?)\s*$/i, "Prompt Idea"],
@@ -69,6 +72,10 @@ const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[
     ],
   },
   {
+    category: "Parking Lot",
+    patterns: [/\bparking lot:\s*/i, /\bidea garden:\s*/i, /\bpark this\b/i],
+  },
+  {
     category: "Task",
     patterns: [
       /\bneed(?:s)?(?:\s+to)?\b/i,
@@ -88,6 +95,14 @@ const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[
   {
     category: "Product",
     patterns: [/\bproduct catalog\b/i, /\blesson\b/i, /\bbook\b/i, /\bchapter\b/i, /\bquiz\b/i],
+  },
+  {
+    category: "License Rule",
+    patterns: [/\blicense rule\b/i, /\blicensing rule\b/i],
+  },
+  {
+    category: "Current Goal",
+    patterns: [/\bcurrent goal:\s*/i, /\bweekly goal:\s*/i],
   },
   {
     category: "Note",
@@ -288,6 +303,7 @@ function stripInlinePrefix(value: string) {
       /^\s*(decision|idea|framework|product|product update|meeting note|note|class notes|personal note|founder note|prompt|prompt idea|rule):\s*/i,
       "",
     )
+    .replace(/^\s*(parking lot|idea garden|license rule|current goal|weekly goal):\s*/i, "")
     .trim();
 }
 

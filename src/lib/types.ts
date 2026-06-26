@@ -59,16 +59,58 @@ export type ProductCatalogType = (typeof PRODUCT_CATALOG_TYPES)[number];
 export const WORK_SESSION_CATEGORIES = [
   "Task",
   "Idea",
+  "Parking Lot",
   "Framework",
   "Product",
   "Decision",
   "Product Update",
   "Meeting Note",
+  "License Rule",
+  "Current Goal",
   "Note",
   "Founder Note",
   "Prompt Idea",
 ] as const;
 export type WorkSessionCategory = (typeof WORK_SESSION_CATEGORIES)[number];
+
+export const FRAMEWORK_STATUSES = ["Idea", "Draft", "Active", "Archived"] as const;
+export type FrameworkStatus = (typeof FRAMEWORK_STATUSES)[number];
+
+export const FRAMEWORK_USES = [
+  "Teaching",
+  "Product",
+  "Marketing",
+  "Decision",
+  "Prompt",
+  "Internal",
+] as const;
+export type FrameworkUse = (typeof FRAMEWORK_USES)[number];
+
+export const LIBRARY_CATEGORIES = [
+  "Company",
+  "Brand",
+  "Rise",
+  "Land",
+  "Rebuild",
+  "Meet at the Heal",
+  "Kit Factory",
+  "Apps",
+  "Framework Library",
+  "Prompt Library",
+  "Teaching Bible",
+  "Communication Bible",
+  "Founder Bible",
+] as const;
+export type LibraryCategory = (typeof LIBRARY_CATEGORIES)[number];
+
+export const DECISION_OUTCOMES = [
+  "Do Now",
+  "Schedule",
+  "Park",
+  "Needs Decision",
+  "Not Now",
+] as const;
+export type DecisionOutcome = (typeof DECISION_OUTCOMES)[number];
 
 export type TaskItem = {
   id: string;
@@ -152,6 +194,8 @@ export type ProductCatalogItem = {
 export type FrameworkItem = {
   id: string;
   name: string;
+  status?: FrameworkStatus;
+  primaryUse?: FrameworkUse;
   definition: string;
   purpose: string;
   relatedBooks: string;
@@ -167,11 +211,39 @@ export type FrameworkItem = {
 
 export type CapturedInsight = {
   id: string;
-  category: Exclude<WorkSessionCategory, "Task" | "Idea" | "Framework">;
+  category: Exclude<WorkSessionCategory, "Task" | "Idea" | "Parking Lot" | "Framework">;
   title: string;
   body: string;
   branch?: WorkspaceArea;
   project?: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type LibraryItem = {
+  id: string;
+  title: string;
+  category: LibraryCategory;
+  location: string;
+  linkedProduct: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DecisionSupportItem = {
+  id: string;
+  title: string;
+  context: string;
+  branch: WorkspaceArea;
+  urgency: number;
+  impact: number;
+  effort: number;
+  clarity: number;
+  reversible: boolean;
+  score: number;
+  outcome: DecisionOutcome;
   notes: string;
   createdAt: string;
   updatedAt: string;

@@ -7,6 +7,8 @@ export const STORAGE_KEYS = {
   weeklyPlan: "bc:weeklyPlan",
   productCatalog: "bc:productCatalog",
   frameworkLibrary: "bc:frameworkLibrary",
+  libraryItems: "bc:libraryItems",
+  decisionSupport: "bc:decisionSupport",
   capturedInsights: "bc:capturedInsights",
   brainDumpDraft: "bc:brainDumpDraft",
   continueWorking: "bc:continueWorking",

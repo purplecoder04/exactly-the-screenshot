@@ -16,6 +16,8 @@ export function useFrameworkLibrary() {
     (data: FrameworkInput) => {
       const framework: FrameworkItem = {
         ...data,
+        status: data.status ?? "Active",
+        primaryUse: data.primaryUse ?? "Teaching",
         id: newId("fw"),
         createdAt: nowISO(),
         updatedAt: nowISO(),
