@@ -89,13 +89,6 @@ export type TaskItem = {
   rolloverCount?: number;
 };
 
-export type CompanyGoal = {
-  title: string;
-  nextStep: string;
-  notes: string;
-  updatedAt: string;
-};
-
 export type ParkingLotItem = {
   id: string;
   idea: string;

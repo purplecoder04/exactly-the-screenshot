@@ -1,4 +1,4 @@
-import type { CompanyGoal, TaskItem, WeeklyPlan } from "@/lib/types";
+import type { TaskItem, WeeklyPlan } from "@/lib/types";
 
 export type DecisionRecommendation = {
   task: TaskItem;
@@ -32,16 +32,14 @@ const ACTIVE_STATUSES = new Set<TaskItem["status"]>(["Outline", "Writing", "Test
 
 export function recommendTopTasks({
   tasks,
-  companyGoal,
   weeklyPlan,
 }: {
   tasks: TaskItem[];
-  companyGoal: CompanyGoal;
   weeklyPlan: WeeklyPlan;
 }): DecisionRecommendation[] {
   const active = tasks.filter((task) => !task.isDone);
   return active
-    .map((task) => scoreTask(task, active, companyGoal, weeklyPlan))
+    .map((task) => scoreTask(task, active, weeklyPlan))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
 }
@@ -49,7 +47,6 @@ export function recommendTopTasks({
 function scoreTask(
   task: TaskItem,
   allActive: TaskItem[],
-  companyGoal: CompanyGoal,
   weeklyPlan: WeeklyPlan,
 ): DecisionRecommendation {
   const reasons: string[] = [];
@@ -69,10 +66,9 @@ function scoreTask(
     reasons.push(`Blocks ${blocksCount} project${blocksCount === 1 ? "" : "s"}`);
   }
 
-  const companyGoalText = [companyGoal.title, companyGoal.nextStep, companyGoal.notes].join(" ");
-  if (goalMatches(task, companyGoalText) || goalMatches(task, weeklyPlan.weeklyGoal)) {
+  if (goalMatches(task, weeklyPlan.weeklyGoal)) {
     score += 28;
-    reasons.push("Supports active company goal");
+    reasons.push("Supports weekly goal");
   }
 
   if (weeklyPlan.topProjects.some((project) => goalMatches(task, project))) {

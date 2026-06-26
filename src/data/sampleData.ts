@@ -1,5 +1,4 @@
 import type {
-  CompanyGoal,
   ContinueWorkingState,
   CapturedInsight,
   FrameworkItem,
@@ -365,14 +364,6 @@ export const SAMPLE_WEEKLY_NOTES: WeeklyNote[] = [
   },
 ];
 
-export const SAMPLE_COMPANY_GOAL: CompanyGoal = {
-  title: "Finish Why Do Men Come Back",
-  nextStep: "Outline Chapter 6 and connect it to the lesson guide path.",
-  notes:
-    "Use this as the active company goal until the core lesson guide, workbook path, and related launch tasks are clear.",
-  updatedAt: iso(),
-};
-
 export const SAMPLE_WEEKLY_PLAN: WeeklyPlan = {
   weeklyGoal: "Move Why Do Men Come Back from draft into a usable lesson guide path.",
   topProjects: ["Why Do Men Come Back", "Kit Factory App", "Return Series Hooks"],
@@ -400,7 +391,7 @@ export const SAMPLE_PRODUCT_CATALOG: ProductCatalogItem[] = [
     bundle: "Return Series Starter",
     bridgeProduct: "Return vs Repair mini guide",
     version: "v0.8",
-    notes: "Primary active product for the company goal.",
+    notes: "Primary active product for the current weekly planning focus.",
     createdAt: iso(-10),
     updatedAt: iso(),
   },

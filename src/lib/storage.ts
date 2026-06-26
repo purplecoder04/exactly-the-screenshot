@@ -4,7 +4,6 @@ export const STORAGE_KEYS = {
   weeklyFocus: "bc:weeklyFocus",
   reminder: "bc:reminder",
   weeklyNotes: "bc:weeklyNotes",
-  companyGoal: "bc:companyGoal",
   weeklyPlan: "bc:weeklyPlan",
   productCatalog: "bc:productCatalog",
   frameworkLibrary: "bc:frameworkLibrary",

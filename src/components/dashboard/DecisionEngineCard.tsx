@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PriorityBadge, StatusBadge } from "@/components/shared/Badges";
 import { AreaPill } from "@/components/shared/AreaPill";
-import { useCompanyGoal } from "@/hooks/useCompanyGoal";
 import { useContinueWorking } from "@/hooks/useContinueWorking";
 import { useTasks } from "@/hooks/useTasks";
 import { useWeeklyPlanning } from "@/hooks/useWeeklyPlanning";
@@ -24,10 +23,9 @@ const AREA_ROUTES = {
 
 export function DecisionEngineCard() {
   const { tasks, moveToToday } = useTasks();
-  const { goal } = useCompanyGoal();
   const { plan } = useWeeklyPlanning();
   const { rememberTask } = useContinueWorking();
-  const recommendations = recommendTopTasks({ tasks, companyGoal: goal, weeklyPlan: plan });
+  const recommendations = recommendTopTasks({ tasks, weeklyPlan: plan });
 
   const acceptPlan = () => {
     recommendations.forEach((item) => moveToToday(item.task.id));
@@ -43,7 +41,8 @@ export function DecisionEngineCard() {
             Today's Mission
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Recommended Top 3 based on priority, rollovers, blockers, weekly planning, progress state, and company impact.
+            Recommended Top 3 based on priority, rollovers, blockers, weekly planning, progress
+            state, and company impact.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -66,7 +65,12 @@ export function DecisionEngineCard() {
       ) : (
         <div className="grid gap-3 lg:grid-cols-3">
           {recommendations.map((recommendation, index) => (
-            <RecommendationCard key={recommendation.task.id} recommendation={recommendation} index={index} onStart={rememberTask} />
+            <RecommendationCard
+              key={recommendation.task.id}
+              recommendation={recommendation}
+              index={index}
+              onStart={rememberTask}
+            />
           ))}
         </div>
       )}
@@ -93,7 +97,9 @@ function RecommendationCard({
           {index + 1}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold leading-snug text-ink break-words">{task.title}</h3>
+          <h3 className="text-base font-semibold leading-snug text-ink break-words">
+            {task.title}
+          </h3>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <AreaPill area={task.branch} />
             <PriorityBadge priority={task.priority} />
@@ -103,7 +109,9 @@ function RecommendationCard({
       </div>
 
       <div className="mt-4 rounded-2xl border border-border/70 bg-warm-white/65 p-3">
-        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-plum-deep">Reason</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-plum-deep">
+          Reason
+        </div>
         <ul className="mt-2 space-y-1 text-sm text-ink">
           {recommendation.reasons.map((reason) => (
             <li key={reason} className="flex gap-2">
@@ -116,11 +124,15 @@ function RecommendationCard({
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-xl border border-border/70 bg-card/70 p-2">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Estimated Time</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Estimated Time
+          </div>
           <div className="font-semibold text-ink">{recommendation.estimatedMinutes} min</div>
         </div>
         <div className="rounded-xl border border-border/70 bg-card/70 p-2">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Impact</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Impact
+          </div>
           <div className="font-semibold text-ink">{recommendation.impactLabel}</div>
         </div>
       </div>

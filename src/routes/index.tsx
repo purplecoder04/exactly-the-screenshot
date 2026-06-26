@@ -39,7 +39,6 @@ import { useTasks } from "@/hooks/useTasks";
 import { useParkingLot } from "@/hooks/useParkingLot";
 import { useWeeklyFocus, useReminder } from "@/hooks/useWeeklyData";
 import { useContinueWorking } from "@/hooks/useContinueWorking";
-import { CompanyGoalCard } from "@/components/dashboard/CompanyGoalCard";
 import { DecisionEngineCard } from "@/components/dashboard/DecisionEngineCard";
 import { SmartProgressCard } from "@/components/dashboard/SmartProgressCard";
 import { PriorityBadge } from "@/components/shared/Badges";
@@ -117,8 +116,18 @@ const WORKSPACES = [
   { title: "CEO Studio", url: "/", icon: Crown, tint: "text-plum-soft bg-lavender/35" },
   { title: "Workbook Studio", url: "/rise", icon: BookOpen, tint: "text-orchid bg-blush/25" },
   { title: "Content Studio", url: "/social-media", icon: Camera, tint: "text-gold bg-gold/20" },
-  { title: "Website Studio", url: "/website", icon: Monitor, tint: "text-powder-blue bg-powder-blue/30" },
-  { title: "Resource Library", url: "/library", icon: Library, tint: "text-green-muted bg-sage/45" },
+  {
+    title: "Website Studio",
+    url: "/website",
+    icon: Monitor,
+    tint: "text-powder-blue bg-powder-blue/30",
+  },
+  {
+    title: "Resource Library",
+    url: "/library",
+    icon: Library,
+    tint: "text-green-muted bg-sage/45",
+  },
 ];
 
 function Dashboard() {
@@ -136,7 +145,8 @@ function Dashboard() {
   const todayTasks = useMemo(
     () =>
       [...tasks.filter((t) => t.isToday)].sort((a, b) => {
-        const rank = (task: TaskItem) => (task.priority === "High" ? 3 : task.priority === "Medium" ? 2 : 1);
+        const rank = (task: TaskItem) =>
+          task.priority === "High" ? 3 : task.priority === "Medium" ? 2 : 1;
         return rank(b) - rank(a);
       }),
     [tasks],
@@ -144,8 +154,15 @@ function Dashboard() {
 
   const continueTask = todayTasks[0] ?? tasks.find((task) => !task.isDone) ?? tasks[0];
   const completedThisMonth = tasks.filter((task) => task.isDone).length;
-  const gardenProgress = Math.min(100, Math.round((completedThisMonth / Math.max(tasks.length, 1)) * 100));
-  const weeklyFocusLine = focus.map((item) => item.value).filter(Boolean).slice(0, 4).join(" • ");
+  const gardenProgress = Math.min(
+    100,
+    Math.round((completedThisMonth / Math.max(tasks.length, 1)) * 100),
+  );
+  const weeklyFocusLine = focus
+    .map((item) => item.value)
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(" • ");
 
   const openTask = (task?: TaskItem) => {
     setEditing(task ?? null);
@@ -154,13 +171,16 @@ function Dashboard() {
 
   return (
     <div className="space-y-5 pb-4">
-      <CompanyGoalCard />
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_370px]">
         <div className="space-y-5">
           <DecisionEngineCard />
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_0.9fr]">
-            <ContinueWorkingCard task={continueTask} state={continueState} onResume={rememberTask} />
+            <ContinueWorkingCard
+              task={continueTask}
+              state={continueState}
+              onResume={rememberTask}
+            />
             <WorkspacesCard />
           </div>
 
@@ -168,7 +188,10 @@ function Dashboard() {
             title="Projects at a Glance"
             subtitle="A soft scan of the branches you are tending."
             action={
-              <Link to="/brand" className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft hover:text-plum-deep">
+              <Link
+                to="/brand"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft hover:text-plum-deep"
+              >
                 See all projects <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             }
@@ -186,10 +209,7 @@ function Dashboard() {
           <SmartProgressCard />
           <ProgressGardenCard completed={completedThisMonth} progress={gardenProgress} />
           <IdeaGardenCard count={ideas.length} />
-          <QuickActions
-            onNewTask={() => openTask()}
-            onNewIdea={() => setIdeaOpen(true)}
-          />
+          <QuickActions onNewTask={() => openTask()} onNewIdea={() => setIdeaOpen(true)} />
         </aside>
       </div>
 
@@ -320,12 +340,19 @@ function MissionTaskCard({
           </button>
         </div>
         <button className="text-left" onClick={() => onEdit(task)}>
-          <h3 className={cn("font-display text-xl font-semibold leading-snug text-ink", task.isDone && "line-through opacity-60")}>
+          <h3
+            className={cn(
+              "font-display text-xl font-semibold leading-snug text-ink",
+              task.isDone && "line-through opacity-60",
+            )}
+          >
             {task.title}
           </h3>
         </button>
         <div className="mt-auto flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">{task.project ?? task.branch}</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {task.project ?? task.branch}
+          </span>
           <PriorityBadge priority={task.priority} />
         </div>
       </CardContent>
@@ -343,7 +370,8 @@ function ContinueWorkingCard({
   onResume: (task: TaskItem) => void;
 }) {
   const areaUrl = state.lastPage || (task ? AREA_ROUTES[task.branch] : "/today");
-  const title = state.lastProduct || task?.project || task?.title || "Choose your next beautiful thing";
+  const title =
+    state.lastProduct || task?.project || task?.title || "Choose your next beautiful thing";
   const subtitle = state.lastLesson || state.lastWorkbook || task?.type || "Creative Project";
   const nextStep = task?.nextStep || "Open the studio and keep moving.";
   return (
@@ -363,9 +391,7 @@ function ContinueWorkingCard({
         </div>
         <div className="flex flex-col justify-center gap-3">
           <div>
-            <h3 className="font-display text-3xl leading-tight text-ink">
-              {title}
-            </h3>
+            <h3 className="font-display text-3xl leading-tight text-ink">{title}</h3>
             <p className="mt-1 text-sm font-semibold text-plum-soft">{subtitle}</p>
             <p className="text-sm text-muted-foreground">{nextStep}</p>
             {state.lastBranch && (
@@ -438,16 +464,22 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
         <h3 className="font-display text-xl font-semibold text-ink">{project.area}</h3>
         <p className="mt-1 min-h-8 text-xs text-muted-foreground">{project.subtitle}</p>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-blush/30">
-          <div className={cn("h-full rounded-full bg-gradient-to-r", project.accent)} style={{ width: `${project.percent}%` }} />
+          <div
+            className={cn("h-full rounded-full bg-gradient-to-r", project.accent)}
+            style={{ width: `${project.percent}%` }}
+          />
         </div>
-        <div className="mt-1 text-right text-[11px] font-semibold text-ink/75">{project.percent}%</div>
+        <div className="mt-1 text-right text-[11px] font-semibold text-ink/75">
+          {project.percent}%
+        </div>
       </div>
     </a>
   );
 }
 
 function DailyInspirationCard({ reminder }: { reminder: string }) {
-  const quote = reminder.split("\n").filter(Boolean)[0] ?? "Girl... Build the simple version first.";
+  const quote =
+    reminder.split("\n").filter(Boolean)[0] ?? "Girl... Build the simple version first.";
   return (
     <RailCard title="Daily Inspiration" icon={Sparkles} className="min-h-60">
       <div className="relative overflow-hidden rounded-2xl border border-blush/45 bg-warm-white/65 p-5">
@@ -457,9 +489,7 @@ function DailyInspirationCard({ reminder }: { reminder: string }) {
           alt=""
           className="pointer-events-none absolute -right-4 bottom-1 h-24 w-24 object-contain opacity-20 mix-blend-multiply"
         />
-        <p className="font-script text-4xl leading-tight text-plum-soft">
-          {quote}
-        </p>
+        <p className="font-script text-4xl leading-tight text-plum-soft">{quote}</p>
         <Heart className="mt-5 h-5 w-5 fill-transparent text-orchid" strokeWidth={1.3} />
       </div>
     </RailCard>
@@ -473,7 +503,10 @@ function ProgressGardenCard({ completed, progress }: { completed: number; progre
         <p className="text-sm leading-relaxed text-ink">
           Every step you take helps something grow.
         </p>
-        <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-[conic-gradient(var(--orchid)_0deg,var(--blush)_var(--progress),rgba(246,199,215,0.26)_0deg)] p-2" style={{ "--progress": `${progress * 3.6}deg` } as CSSProperties}>
+        <div
+          className="relative flex h-28 w-28 items-center justify-center rounded-full bg-[conic-gradient(var(--orchid)_0deg,var(--blush)_var(--progress),rgba(246,199,215,0.26)_0deg)] p-2"
+          style={{ "--progress": `${progress * 3.6}deg` } as CSSProperties}
+        >
           <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-warm-white text-center shadow-inner">
             <span className="text-3xl font-bold text-ink">{completed}</span>
             <span className="text-[10px] font-semibold text-muted-foreground">Tasks Bloomed</span>
@@ -502,7 +535,10 @@ function IdeaGardenCard({ count }: { count: number }) {
             <div className="font-display text-3xl font-semibold text-plum-soft">{count}</div>
             <div className="text-xs font-semibold text-muted-foreground">Ideas Planted</div>
           </div>
-          <Link to="/parking-lot" className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft">
+          <Link
+            to="/parking-lot"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-plum-soft"
+          >
             See Garden <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
@@ -511,18 +547,26 @@ function IdeaGardenCard({ count }: { count: number }) {
   );
 }
 
-function QuickActions({
-  onNewTask,
-  onNewIdea,
-}: {
-  onNewTask: () => void;
-  onNewIdea: () => void;
-}) {
+function QuickActions({ onNewTask, onNewIdea }: { onNewTask: () => void; onNewIdea: () => void }) {
   const actions = [
     { label: "New Task", icon: CheckSquare2, onClick: onNewTask },
-    { label: "New Note", icon: NotebookPen, onClick: () => toast.info("Weekly note capture is getting its planner pass in Stage 2.") },
-    { label: "Schedule", icon: Calendar, onClick: () => toast.info("Schedule is a future studio tool.") },
-    { label: "Brain Dump", icon: Brain, onClick: () => { window.location.href = "/brain-dump"; } },
+    {
+      label: "New Note",
+      icon: NotebookPen,
+      onClick: () => toast.info("Weekly note capture is getting its planner pass in Stage 2."),
+    },
+    {
+      label: "Schedule",
+      icon: Calendar,
+      onClick: () => toast.info("Schedule is a future studio tool."),
+    },
+    {
+      label: "Brain Dump",
+      icon: Brain,
+      onClick: () => {
+        window.location.href = "/brain-dump";
+      },
+    },
     { label: "Add Idea", icon: FilePlus2, onClick: onNewIdea },
   ];
 
@@ -580,7 +624,9 @@ function QuoteStrip({ weeklyFocus }: { weeklyFocus: string }) {
       </p>
       <div className="rounded-2xl border border-blush/60 bg-warm-white/72 p-4 shadow-sm">
         <div className="text-sm font-semibold text-plum-deep">This Week's Focus</div>
-        <div className="mt-1 text-sm text-ink">{weeklyFocus || "Build • Create • Serve • Impact"}</div>
+        <div className="mt-1 text-sm text-ink">
+          {weeklyFocus || "Build • Create • Serve • Impact"}
+        </div>
       </div>
     </section>
   );
