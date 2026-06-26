@@ -46,7 +46,7 @@ export function WorkSessionReview({ drafts, sourceDescription, onUpdate, onRemov
     >
       {drafts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-plum-soft/25 bg-card/70 p-8 text-center text-sm text-muted-foreground">
-          Nothing structured yet. Add lines like TODO:, Idea:, Framework:, Product Update:, Meeting Note:, Founder Note:, or Prompt:.
+          Nothing structured yet. Add lines like TODO:, Idea:, Framework:, Decision:, Product Update:, Meeting Note:, Note:, Founder Note:, or Prompt:.
         </div>
       ) : (
         <div className="grid gap-4">

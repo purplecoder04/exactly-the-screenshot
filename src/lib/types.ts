@@ -73,8 +73,10 @@ export const WORK_SESSION_CATEGORIES = [
   "Task",
   "Idea",
   "Framework",
+  "Decision",
   "Product Update",
   "Meeting Note",
+  "Note",
   "Founder Note",
   "Prompt Idea",
 ] as const;

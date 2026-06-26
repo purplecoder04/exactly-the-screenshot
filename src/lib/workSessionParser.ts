@@ -26,14 +26,67 @@ export type WorkSessionDraft = {
 };
 
 const PREFIX_CATEGORY: Array<[RegExp, WorkSessionCategory]> = [
-  [/^\s*(TODO|Task|Fix|Build|Add|Update|Test):\s*(.+?)\s*$/i, "Task"],
-  [/^\s*Next Step:\s*(.+?)\s*$/i, "Task"],
+  [/^\s*(TODO|Task|Next Step|Fix|Build|Add|Update|Test):\s*(.+?)\s*$/i, "Task"],
   [/^\s*Idea:\s*(.+?)\s*$/i, "Idea"],
   [/^\s*Framework:\s*(.+?)\s*$/i, "Framework"],
+  [/^\s*(Decision):\s*(.+?)\s*$/i, "Decision"],
   [/^\s*Product Update:\s*(.+?)\s*$/i, "Product Update"],
   [/^\s*Meeting Note:\s*(.+?)\s*$/i, "Meeting Note"],
+  [/^\s*(Note|Class Notes|Personal Note):\s*(.+?)\s*$/i, "Note"],
   [/^\s*Founder Note:\s*(.+?)\s*$/i, "Founder Note"],
   [/^\s*(Prompt|Prompt Idea):\s*(.+?)\s*$/i, "Prompt Idea"],
+];
+
+const KEYWORD_CATEGORY: Array<{ category: WorkSessionCategory; patterns: RegExp[] }> = [
+  {
+    category: "Framework",
+    patterns: [
+      /\bbelongs in the framework library\b/i,
+      /\bis a framework\b/i,
+      /\brule:\s*/i,
+    ],
+  },
+  {
+    category: "Decision",
+    patterns: [
+      /\bdecision:\s*/i,
+      /\blocked\b/i,
+      /\bwe decided\b/i,
+      /\bconfirmed\b/i,
+    ],
+  },
+  {
+    category: "Idea",
+    patterns: [
+      /\bidea:\s*/i,
+      /\bmaybe\b/i,
+      /\bshould add\b/i,
+      /\bwould be cool\b/i,
+      /\bfuture idea\b/i,
+    ],
+  },
+  {
+    category: "Task",
+    patterns: [
+      /\bneed to\b/i,
+      /\bfinish\b/i,
+      /\bupdate\b/i,
+      /\badd\b/i,
+      /\bcreate\b/i,
+      /\btest\b/i,
+      /\bcall\b/i,
+      /\breview\b/i,
+    ],
+  },
+  {
+    category: "Note",
+    patterns: [
+      /\bremember\b/i,
+      /\bnote:\s*/i,
+      /\bclass notes?\b/i,
+      /\bpersonal note\b/i,
+    ],
+  },
 ];
 
 export async function parseTextToWorkSessionDrafts(
@@ -44,31 +97,17 @@ export async function parseTextToWorkSessionDrafts(
 }
 
 export function ruleBasedWorkSessionParser(text: string, sourceLabel = "Brain Dump") {
-  const lines = text.split(/\r?\n/);
-  const drafts = lines
-    .map((line, index) => lineToDraft(line, index, sourceLabel))
+  return extractSegments(text)
+    .map((segment, index) => segmentToDraft(segment, index, sourceLabel))
     .filter((draft): draft is WorkSessionDraft => Boolean(draft));
-
-  if (drafts.length > 0) return drafts;
-
-  const trimmed = text.trim();
-  if (!trimmed) return [];
-
-  return [
-    baseDraft({
-      index: 0,
-      sourceLabel,
-      category: "Founder Note",
-      title: titleFrom(trimmed),
-      body: trimmed,
-      rawText: trimmed,
-    }),
-  ];
 }
 
-function lineToDraft(line: string, index: number, sourceLabel: string): WorkSessionDraft | null {
+function segmentToDraft(segment: string, index: number, sourceLabel: string): WorkSessionDraft | null {
+  const cleaned = cleanSegment(segment);
+  if (!cleaned) return null;
+
   for (const [regex, category] of PREFIX_CATEGORY) {
-    const match = line.match(regex);
+    const match = cleaned.match(regex);
     if (!match) continue;
     const value = (match[2] ?? match[1] ?? "").trim();
     if (!value) return null;
@@ -78,11 +117,59 @@ function lineToDraft(line: string, index: number, sourceLabel: string): WorkSess
       category,
       title: titleFrom(value),
       body: value,
-      rawText: line.trim(),
-      isNextStep: /^next step:/i.test(line),
+      rawText: cleaned,
+      isNextStep: /^next step:/i.test(cleaned),
     });
   }
-  return null;
+
+  const category = classifyByKeyword(cleaned);
+  return baseDraft({
+    index,
+    sourceLabel,
+    category,
+    title: titleFrom(stripInlinePrefix(cleaned)),
+    body: stripInlinePrefix(cleaned),
+    rawText: cleaned,
+  });
+}
+
+function extractSegments(text: string) {
+  return text
+    .replace(/\r/g, "")
+    .split(/\n+/)
+    .flatMap((line) => {
+      const cleanLine = cleanSegment(line);
+      if (!cleanLine) return [];
+      return splitIntoSentences(cleanLine);
+    })
+    .map(cleanSegment)
+    .filter(Boolean);
+}
+
+function splitIntoSentences(value: string) {
+  const pieces = value.match(/[^.!?]+[.!?]+|[^.!?]+$/g);
+  return pieces && pieces.length > 0 ? pieces : [value];
+}
+
+function cleanSegment(value: string) {
+  return value
+    .trim()
+    .replace(/^\s*[-*]\s+/, "")
+    .replace(/^\s*\d+[.)]\s+/, "")
+    .trim();
+}
+
+function classifyByKeyword(value: string): WorkSessionCategory {
+  for (const rule of KEYWORD_CATEGORY) {
+    if (rule.patterns.some((pattern) => pattern.test(value))) return rule.category;
+  }
+  return "Note";
+}
+
+function stripInlinePrefix(value: string) {
+  return value
+    .replace(/^\s*(decision|idea|framework|note|class notes|personal note|rule):\s*/i, "")
+    .trim();
 }
 
 function baseDraft({
