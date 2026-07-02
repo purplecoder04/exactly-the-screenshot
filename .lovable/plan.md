@@ -1,127 +1,58 @@
+# Storage Swap: localStorage → Supabase (4 tables)
 
-# Best Collective CEO Dashboard — Build Plan (Revised)
+Swap the persistence layer for Tasks, Ideas (Idea Garden + Brain Dump), Products, and Frameworks from `localStorage` to the existing Supabase tables. No schema changes, no RLS changes, no UI changes.
 
-Local-first premium feminine CEO dashboard matching the reference screenshot. No backend of any kind — all state in `localStorage`.
+## Scope
 
-## Build Order (strict)
+**In scope (swap to Supabase):**
+- `useTasks` → `public.tasks`
+- `useParkingLot` + Brain Dump ideas → `public.ideas` (with `source_app = "ceo_studio"`)
+- `useProductCatalog` → `public.products`
+- `useFrameworkLibrary` → `public.frameworks`
 
-1. Design system + sidebar shell
-2. Dashboard (close visual match to screenshot)
-3. Today page
-4. Parking Lot page
-5. One reusable Branch/Workstream page
-6. Duplicate that layout for the other 8 area tabs
-7. Weekly Log (with editable notes)
+**Out of scope (stay on localStorage):**
+- Weekly focus/notes/plan, Library items, Decision Support, Captured Insights, Continue Working, Brain Dump draft text, Reminder — no matching tables exist and the user said not to create any.
+- The 9 unrelated tables (posts, hooks, stories, etc.) — untouched.
 
-Do not polish later pages until the Dashboard is right.
+## Column mapping
 
-## No Backend
+Since the DB columns are a subset of the current local types, extra UI-only fields (e.g. task `nextStep`, `notes`, `project`, `isDone`, `rolloverCount`, `completedAt`; product `collection`, `lessonGuide`, `workbook`, `version`, `notes`, `isLocked`; framework `definition`, `purpose`, related*, `notes`, `primaryUse`; parking-lot `decision`, `notes`, `priority`) are **not persisted**. They remain in the in-memory shape so the UI keeps rendering, but they reset on reload. This is a consequence of the "do not create new tables / match columns exactly" constraint.
 
-Local-first only. No Supabase, no auth/login, no DB, no API routes, no server fns, no mock endpoints, no `.server.ts` files. All persistence via `localStorage`.
+- **tasks**: `title, branch, workstream (= areaType), status, is_today, priority, due_date`. `isDone` is derived from `status === "Done"`.
+- **ideas**: `content (= idea/body), source_app = "ceo_studio", type, branch, status`. Parking-lot `decision` maps into `status` (`Keep`/`Maybe`/`Later`). Brain Dump items saved as `type = "Idea"`.
+- **products**: `name, branch, type, status, design_preset (= collection), created_from, export_url`.
+- **frameworks**: `name, branch, description (= definition), status`.
 
-## Routing
+Row → UI mapping fills missing fields with sensible defaults (`""`, `false`, `"Medium"`, etc.) so no component breaks.
 
-Use the routing already scaffolded in this project: **TanStack Start file-based routes** under `src/routes/` (confirmed: `__root.tsx`, `index.tsx` already exist). No new framework, no SSR data fetching — pages are client-rendered and read directly from localStorage.
+## Approach
 
-Route files to add:
-- `index.tsx` (Dashboard — replaces placeholder)
-- `today.tsx`, `parking-lot.tsx`, `weekly-log.tsx`
-- Core branches: `brand.tsx`, `rise.tsx`, `land.tsx`, `rebuild.tsx`, `meet-at-the-heal.tsx`
-- Workstreams: `kit-factory-app.tsx`, `social-media-app.tsx`, `website.tsx`, `social-media.tsx`
+1. Add a shared row⇄item mapper module per table under `src/lib/mappers/` (tasks, ideas, products, frameworks).
+2. Rewrite the four hooks (`useTasks`, `useParkingLot`, `useProductCatalog`, `useFrameworkLibrary`) to:
+   - Fetch via TanStack Query (`useQuery`) on mount, keyed per table.
+   - Expose the same `add/update/delete/toggle...` API as today so **no consumer changes**.
+   - Perform optimistic updates + Supabase mutations, then `invalidateQueries` on settle.
+   - Use the browser `supabase` client (`@/integrations/supabase/client`) directly — no server functions needed since RLS stays off.
+3. Remove `SAMPLE_*` seeding for these four datasets (sample arrays stay in the file but hooks no longer read them). Other hooks that still use samples keep working.
+4. Leave `useLocalState` and other hooks untouched.
 
-Each route: unique `head()` title/description + `errorComponent` + `notFoundComponent`. Root sets `defaultErrorComponent` + `notFoundComponent`.
+## Files touched
 
-## Design System
+- `src/hooks/useTasks.ts` — rewrite internals, same exported API.
+- `src/hooks/useParkingLot.ts` — rewrite internals, same exported API.
+- `src/hooks/useProductCatalog.ts` — rewrite internals, same exported API.
+- `src/hooks/useFrameworkLibrary.ts` — rewrite internals, same exported API.
+- `src/hooks/useCapturedInsights.ts` — no change; Brain Dump's *idea* saves route through `useParkingLot`/ideas hook via existing `useWorkSessionSaver` path. Only the ideas branch is redirected; other categories stay local.
+- `src/hooks/useWorkSessionSaver.ts` — verify it delegates idea creation to the ideas hook (adjust only if it currently writes ideas directly to localStorage).
+- `src/lib/mappers/{tasks,ideas,products,frameworks}.ts` — new small mapping helpers.
+- No route/component/UI files change.
 
-Update `src/styles.css` with the palette as semantic tokens (oklch equivalents) — never hardcoded hex in components:
-- Deep plum `#4B234A`, soft plum `#6F3D6B`, cream `#FAF3E8`, warm white `#FFFDF8`, soft lavender `#D9CBEF`, blush `#F4C7D6`, muted green `#8FAE9C`, gold `#C9A451`, ink `#2D2430`, muted text `#756978`
-- Map to `--background` (cream), `--foreground` (ink), `--primary` (plum-deep), `--accent` (gold), `--sidebar-*` (plum gradient + cream text), plus status/priority tokens
-- Fonts via `<link>` in `__root.tsx` head (never `@import` URLs in styles.css): **Cormorant Garamond** display + **Inter** body. Register `--font-display` and `--font-sans` in `@theme`.
-- Card radius 8px, soft shadows, thin borders
+## Verification
 
-## Data Layer (single source of truth)
+- Typecheck.
+- Preview: create/edit/toggle/delete a Task on Today; add an Idea in Parking Lot; run Brain Dump → save an Idea; add a Product; add a Framework. Reload page and confirm each persists (and appears in Supabase).
 
-**`src/data/sampleData.ts`** — ALL seed data lives here, nothing scattered in components:
-- starter tasks
-- starter parking lot ideas
-- starter weekly focus rows
-- starter founder reminder text
-- starter weekly notes / weekly log entries
+## Caveats to flag to user after build
 
-**`src/lib/types.ts`** — `TaskItem`, `ParkingLotItem`, `WeeklyNote`, `WeeklyFocus`, `Branch`, `Workstream`, `WorkspaceArea` (= Branch | Workstream), `AreaType`, `Status`, `Priority`, `ProjectType`, `ParkingLotDecision` — exact shapes from spec.
-
-**`src/lib/storage.ts`** — typed localStorage wrapper with exact keys:
-- `bc:tasks`
-- `bc:parkingLot`
-- `bc:weeklyFocus`
-- `bc:reminder`
-- `bc:weeklyNotes`
-
-**Hooks** (`src/hooks/`): `useTasks`, `useParkingLot`, `useWeeklyFocus`, `useReminder`, `useWeeklyNotes`. Each: load from localStorage on mount (fallback to `sampleData`), write-through on every mutation, expose CRUD + helpers (`toggleDone`, `moveToToday`, `removeFromToday`, `endDayRollover`, `moveIdeaToTask`).
-
-## Layout & Sidebar
-
-`src/routes/__root.tsx` wraps `<Outlet />` in `SidebarProvider` + `<AppSidebar />` + header (Welcome, CEO + crown + date pill).
-
-`src/components/AppSidebar.tsx` — fixed dark plum gradient sidebar, gold crown + stacked "BEST COLLECTIVE" wordmark, groups with small uppercase gold labels:
-- **Dashboard** → Dashboard
-- **Today & Focus** → Today, Parking Lot
-- **Core Branches** → Brand, Rise, Land, Rebuild, Meet at the Heal
-- **Workstreams** → Kit Factory App, Social Media App, Website, Social Media
-- **Review** → Weekly Log
-
-Active item = blush→plum gradient pill, white text. Lucide icons per spec (Home / Calendar / Briefcase / Gem / Heart / Star / Leaf / HeartHandshake / Settings / Smartphone / Globe / Hash / BarChart). Gold-bordered quote at bottom:
-> One Vision.
-> Many Branches.
-> One Mission.
-
-## Reusable Building Blocks (`src/components/shared/`)
-
-- `StatusBadge`, `PriorityBadge` (colored star), `BranchPill` — single combined label **"Branch / Area"** everywhere
-- `FilterBar` — combined Branch/Area select + Status select + Priority select
-- `TaskTable` — checkbox, Task, Project, Branch / Area, Priority, Status, Notes
-- `TaskDialog` — add/edit task (title, branch, project, type, status, priority, notes, isToday)
-- `ParkingLotDialog` — add/edit idea
-- `EmptyState`
-
-## Dashboard (`src/components/dashboard/`) — closely match screenshot
-
-Grid: 3 main columns + xl right rail. Cards:
-- `TodaysBig3Card` — top 3 priority Today tasks, numbered circles, priority badges, "View Today →"
-- `WeekFocusCard` — labeled rows (Main Book, Main App, Main Website Task, Main Marketing Task, Focus Area)
-- `QuickStatusCard` — colored dot per branch/workstream + status text
-- `FounderReminderCard` — dark plum gradient, gold hearts, serif italics, editable via dialog
-- `RecentProgressCard` — green-check rows, "View Weekly Log →"
-- `OverdueWaitingCard` — coral dots, "Go to Today →", row click → move to Today
-- `AtAGlanceCard` — 6 pastel stat tiles (Active / In Progress / Waiting / Testing / Completed / Parking Lot count)
-- `StatusKeyCard`, `PriorityKeyCard`, `HowToUseCard` — right rail
-- `TodayChecklistTable` — bottom-left preview with plum header, Add Task + End Day & Rollover buttons
-- `ParkingLotPreviewTable` — bottom-right preview, "Go to Parking Lot →"
-- `QuoteStripFooter` — cream/lavender strip with serif italic quote + stars
-
-## Page Composition
-
-- **Today** — three Big 3 hero cards (empty slot shows Add), Extra Tasks table, Add Task dialog, **End Day & Rollover** button with confirm dialog: mark `isDone` tasks completed (`completedAt`), increment `rolloverCount` for unfinished Today tasks (kept visible as rollover candidates). Toast via `sonner`.
-- **Parking Lot** — full table (Idea, Branch / Area, Type, Priority, Keep/Maybe/Later, Notes, Created), filters, Add/Edit/Delete, **Move to Active Tasks** (converts idea → task, status=Idea, copies branch/type/priority/notes).
-- **AreaPage (reusable)** — header with area name + icon, small stats row (active/done/waiting/high), FilterBar, TaskTable scoped to that area, Add Task pre-filled with that area. Used by all 9 branch/workstream routes.
-- **Weekly Log** — NOT read-only:
-  - Tasks completed in the last 7 days, grouped by day
-  - Rollover counts for unfinished tasks
-  - Manual weekly notes section: Add Note dialog (Title, Branch / Area, Note, Date), edit/delete, persisted to `bc:weeklyNotes`
-
-## Global Features
-
-Add/edit/delete tasks, mark done, move to Today, End Day & Rollover, add/edit/delete parking lot ideas, move idea → task, filter by Branch / Area + Status + Priority everywhere, full localStorage persistence, data survives refresh.
-
-## Technical Notes
-
-- Sidebar via existing shadcn `Sidebar` in `src/components/ui/sidebar.tsx`
-- Toasts via existing `sonner`
-- No new npm packages required
-- All colors via semantic tokens — no `text-white` / `bg-[#...]` literals
-- Dates via `Intl.DateTimeFormat`
-- No `createServerFn`, no `.server.ts`, no `src/routes/api/*`
-
-## Out of Scope (V1)
-
-Auth, Cloud, multi-user, file uploads, integrations, reporting beyond Weekly Log.
+- The "extra" fields listed above are lost on reload since the DB columns don't include them. If any of these matter (e.g. task notes/next step, parking-lot decision beyond mapping to status), the fix is to add columns — which the user has explicitly disallowed for now.
+- With RLS off and the anon key in the browser, all four tables are world-readable/writable. The user chose this explicitly; worth re-flagging once before shipping.
