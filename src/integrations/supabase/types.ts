@@ -70,6 +70,317 @@ export type Database = {
           },
         ]
       }
+      assets: {
+        Row: {
+          created_at: string | null
+          file_url: string | null
+          id: string
+          kit_id: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          kit_id?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          kit_id?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      branches: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      captured_insights: {
+        Row: {
+          branch: string | null
+          content: string
+          created_at: string | null
+          id: string
+          source: string | null
+        }
+        Insert: {
+          branch?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          source?: string | null
+        }
+        Update: {
+          branch?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
+      content_to_cash_assets: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          title: string | null
+          type: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          type?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      continue_working_state: {
+        Row: {
+          app: string | null
+          branch: string | null
+          id: string
+          lesson: string | null
+          page: string | null
+          product: string | null
+          task: string | null
+          updated_at: string | null
+          workbook: string | null
+        }
+        Insert: {
+          app?: string | null
+          branch?: string | null
+          id?: string
+          lesson?: string | null
+          page?: string | null
+          product?: string | null
+          task?: string | null
+          updated_at?: string | null
+          workbook?: string | null
+        }
+        Update: {
+          app?: string | null
+          branch?: string | null
+          id?: string
+          lesson?: string | null
+          page?: string | null
+          product?: string | null
+          task?: string | null
+          updated_at?: string | null
+          workbook?: string | null
+        }
+        Relationships: []
+      }
+      day3_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      decision_items: {
+        Row: {
+          branch: string | null
+          context: string | null
+          created_at: string | null
+          decision: string | null
+          id: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          branch?: string | null
+          context?: string | null
+          created_at?: string | null
+          decision?: string | null
+          id?: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          branch?: string | null
+          context?: string | null
+          created_at?: string | null
+          decision?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      design_presets: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_presets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_flow_steps: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          flow_name: string | null
+          id: string
+          step_order: number | null
+          subject: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          flow_name?: string | null
+          id?: string
+          step_order?: number | null
+          subject?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          flow_name?: string | null
+          id?: string
+          step_order?: number | null
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      export_files: {
+        Row: {
+          created_at: string | null
+          export_job_id: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          export_job_id?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          export_job_id?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_files_export_job_id_fkey"
+            columns: ["export_job_id"]
+            isOneToOne: false
+            referencedRelation: "export_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      export_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          export_type: string | null
+          id: string
+          kit_id: string | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          export_type?: string | null
+          id?: string
+          kit_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          export_type?: string | null
+          id?: string
+          kit_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_jobs_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       filming_lines: {
         Row: {
           b_roll: string | null
@@ -244,6 +555,30 @@ export type Database = {
         }
         Relationships: []
       }
+      import_work_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          parsed_items: Json | null
+          raw_content: string | null
+          source_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          parsed_items?: Json | null
+          raw_content?: string | null
+          source_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          parsed_items?: Json | null
+          raw_content?: string | null
+          source_type?: string | null
+        }
+        Relationships: []
+      }
       keyword_paths: {
         Row: {
           created_at: string | null
@@ -289,6 +624,197 @@ export type Database = {
           },
         ]
       }
+      kit_documents: {
+        Row: {
+          created_at: string | null
+          id: string
+          kit_id: string | null
+          title: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          title?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          title?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_documents_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_pages: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          id: string
+          kit_document_id: string | null
+          page_number: number | null
+          page_type: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          kit_document_id?: string | null
+          page_number?: number | null
+          page_type?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          kit_document_id?: string | null
+          page_number?: number | null
+          page_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_pages_kit_document_id_fkey"
+            columns: ["kit_document_id"]
+            isOneToOne: false
+            referencedRelation: "kit_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_versions: {
+        Row: {
+          created_at: string | null
+          id: string
+          kit_id: string | null
+          snapshot: Json | null
+          version_number: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          snapshot?: Json | null
+          version_number?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          snapshot?: Json | null
+          version_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_versions_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kits: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          design_preset_id: string | null
+          id: string
+          name: string
+          product_flow_id: string | null
+          product_id: string | null
+          source_markdown: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          design_preset_id?: string | null
+          id?: string
+          name: string
+          product_flow_id?: string | null
+          product_id?: string | null
+          source_markdown?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          design_preset_id?: string | null
+          id?: string
+          name?: string
+          product_flow_id?: string | null
+          product_id?: string | null
+          source_markdown?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kits_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kits_design_preset_id_fkey"
+            columns: ["design_preset_id"]
+            isOneToOne: false
+            referencedRelation: "design_presets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kits_product_flow_id_fkey"
+            columns: ["product_flow_id"]
+            isOneToOne: false
+            referencedRelation: "product_flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kits_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      library_items: {
+        Row: {
+          category: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       media_assets: {
         Row: {
           created_at: string | null
@@ -317,6 +843,47 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          created_at: string | null
+          cta: string | null
+          id: string
+          link: string | null
+          name: string
+          price: number | null
+          product_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cta?: string | null
+          id?: string
+          link?: string | null
+          name: string
+          price?: number | null
+          product_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cta?: string | null
+          id?: string
+          link?: string | null
+          name?: string
+          price?: number | null
+          product_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -380,6 +947,38 @@ export type Database = {
           },
         ]
       }
+      product_flows: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+          structure: Json | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          structure?: Json | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          structure?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_flows_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           branch: string | null
@@ -412,6 +1011,33 @@ export type Database = {
           id?: string
           name?: string
           status?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      proof_assets: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          file_url: string | null
+          id: string
+          permission_note: string | null
+          type: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          permission_note?: string | null
+          type?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          permission_note?: string | null
           type?: string | null
         }
         Relationships: []
@@ -535,6 +1161,87 @@ export type Database = {
           status?: string | null
           title?: string
           workstream?: string | null
+        }
+        Relationships: []
+      }
+      voice_lines: {
+        Row: {
+          branch: string | null
+          created_at: string | null
+          id: string
+          text: string
+          type: string | null
+        }
+        Insert: {
+          branch?: string | null
+          created_at?: string | null
+          id?: string
+          text: string
+          type?: string | null
+        }
+        Update: {
+          branch?: string | null
+          created_at?: string | null
+          id?: string
+          text?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
+      weekly_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          note: string | null
+          type: string | null
+          week_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          type?: string | null
+          week_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          type?: string | null
+          week_start?: string | null
+        }
+        Relationships: []
+      }
+      weekly_plans: {
+        Row: {
+          biggest_risk: string | null
+          created_at: string | null
+          focus: string | null
+          id: string
+          success_this_week: string | null
+          top_projects: string | null
+          waiting_on: string | null
+          week_start: string | null
+        }
+        Insert: {
+          biggest_risk?: string | null
+          created_at?: string | null
+          focus?: string | null
+          id?: string
+          success_this_week?: string | null
+          top_projects?: string | null
+          waiting_on?: string | null
+          week_start?: string | null
+        }
+        Update: {
+          biggest_risk?: string | null
+          created_at?: string | null
+          focus?: string | null
+          id?: string
+          success_this_week?: string | null
+          top_projects?: string | null
+          waiting_on?: string | null
+          week_start?: string | null
         }
         Relationships: []
       }
