@@ -18,6 +18,10 @@ type SaveResult = {
   byCategory: Record<WorkSessionCategory, number>;
 };
 
+type SaveOptions = {
+  saveCapturedInsights?: boolean;
+};
+
 const emptyCounts = (): Record<WorkSessionCategory, number> => ({
   Task: 0,
   Idea: 0,
@@ -42,9 +46,10 @@ export function useWorkSessionSaver() {
   const { addInsight } = useCapturedInsights();
 
   const saveDrafts = useCallback(
-    (drafts: WorkSessionDraft[]): SaveResult => {
+    (drafts: WorkSessionDraft[], options: SaveOptions = {}): SaveResult => {
       const selected = drafts.filter((draft) => draft.selected && draft.title.trim());
       const byCategory = emptyCounts();
+      const shouldSaveCapturedInsights = options.saveCapturedInsights !== false;
 
       selected.forEach((draft) => {
         byCategory[draft.category] += 1;
@@ -118,14 +123,16 @@ export function useWorkSessionSaver() {
           return;
         }
 
-        addInsight({
-          category: draft.category as CapturedInsight["category"],
-          title: draft.title.trim(),
-          body: draft.body,
-          branch: draft.branch,
-          project: draft.project,
-          notes: draft.notes,
-        });
+        if (shouldSaveCapturedInsights) {
+          addInsight({
+            category: draft.category as CapturedInsight["category"],
+            title: draft.title.trim(),
+            body: draft.body,
+            branch: draft.branch,
+            project: draft.project,
+            notes: draft.notes,
+          });
+        }
       });
 
       return { total: selected.length, byCategory };

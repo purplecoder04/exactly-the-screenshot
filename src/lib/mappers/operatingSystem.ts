@@ -7,6 +7,8 @@ import {
   areaTypeFor,
   type Branch,
   type CapturedInsight,
+  type CapturedInsightParsedType,
+  type CapturedInsightStatus,
   type ContinueWorkingState,
   type DecisionItem,
   type DecisionItemStatus,
@@ -20,6 +22,7 @@ import {
   type WorkSessionCategory,
   type WorkspaceArea,
 } from "@/lib/types";
+import type { WorkSessionDraft } from "@/lib/workSessionParser";
 
 type Tables = Database["public"]["Tables"];
 
@@ -111,6 +114,44 @@ function safeInsightCategory(value?: string | null): CapturedInsight["category"]
   const category = value as WorkSessionCategory;
   if (["Task", "Idea", "Parking Lot", "Framework"].includes(category)) return "Captured Insight";
   return (category || "Captured Insight") as CapturedInsight["category"];
+}
+
+function safeCapturedInsightStatus(value?: string | null): CapturedInsightStatus {
+  return value === "reviewed" || value === "converted" ? value : "unreviewed";
+}
+
+function safeParsedType(value?: string | null): CapturedInsightParsedType {
+  if (
+    value === "task" ||
+    value === "idea" ||
+    value === "framework" ||
+    value === "product" ||
+    value === "decision"
+  ) {
+    return value;
+  }
+  return "note";
+}
+
+function parsedTypeToCategory(value?: string | null): WorkSessionCategory {
+  const parsedType = safeParsedType(value);
+  if (parsedType === "task") return "Task";
+  if (parsedType === "idea") return "Idea";
+  if (parsedType === "framework") return "Framework";
+  if (parsedType === "product") return "Product";
+  if (parsedType === "decision") return "Decision";
+  return "Note";
+}
+
+export function categoryToCapturedInsightParsedType(
+  category: WorkSessionCategory,
+): CapturedInsightParsedType {
+  if (category === "Task") return "task";
+  if (category === "Idea" || category === "Parking Lot") return "idea";
+  if (category === "Framework") return "framework";
+  if (category === "Product" || category === "Product Update") return "product";
+  if (category === "Decision") return "decision";
+  return "note";
 }
 
 function parseTopProjects(value?: string | null): string[] {
@@ -269,27 +310,94 @@ export function continueWorkingToInsert(state: ContinueWorkingState): ContinueWo
 }
 
 export function rowToCapturedInsight(row: CapturedInsightRow): CapturedInsight {
-  const payload = unpack<CapturedInsight>("captured-insight", row.content);
-  const plainTitle = row.content.split("\n")[0]?.slice(0, 90) || "Captured Insight";
+  const rawValue = row.raw_text ?? row.content;
+  const payload = unpack<CapturedInsight>("captured-insight", rawValue);
+  const draftPayload = unpack<CapturedInsightDraftPayload>("brain-dump-draft", rawValue);
+  const draft = draftPayload?.draft;
+  const plainTitle = rawValue.split("\n")[0]?.slice(0, 90) || "Captured Insight";
   return {
     id: row.id,
-    category: safeInsightCategory(payload?.category ?? row.source),
-    title: payload?.title ?? plainTitle,
-    body: payload?.body ?? row.content,
-    branch: safeOptionalArea(payload?.branch ?? row.branch),
-    project: payload?.project ?? "",
-    notes: payload?.notes ?? "",
+    category: safeInsightCategory(payload?.category ?? draft?.category ?? row.source),
+    title: payload?.title ?? draft?.title ?? plainTitle,
+    body: payload?.body ?? draft?.body ?? rawValue,
+    branch: safeOptionalArea(payload?.branch ?? draft?.branch ?? row.branch),
+    project: payload?.project ?? draft?.project ?? "",
+    notes: payload?.notes ?? draft?.notes ?? "",
     createdAt: row.created_at ?? now(),
     updatedAt: payload?.updatedAt ?? row.created_at ?? now(),
   };
 }
 
 export function capturedInsightToInsert(item: CapturedInsight): CapturedInsightInsert {
+  const rawText = pack("captured-insight", item);
   return {
     branch: item.branch ?? null,
-    content: pack("captured-insight", item),
+    content: rawText,
+    raw_text: rawText,
+    parsed_type: categoryToCapturedInsightParsedType(item.category),
     source: item.category,
+    status: "reviewed",
     created_at: item.createdAt,
+  };
+}
+
+type CapturedInsightDraftPayload = {
+  source: "Brain Dump";
+  draft: WorkSessionDraft;
+};
+
+export function capturedInsightDraftToInsert(draft: WorkSessionDraft): CapturedInsightInsert {
+  const rawText = pack("brain-dump-draft", { source: "Brain Dump", draft });
+  return {
+    branch: draft.branch,
+    content: draft.rawText || draft.title,
+    raw_text: rawText,
+    parsed_type: categoryToCapturedInsightParsedType(draft.category),
+    source: "Brain Dump",
+    status: "unreviewed",
+    created_at: now(),
+  };
+}
+
+export function capturedInsightDraftToUpdate(
+  draft: WorkSessionDraft,
+): Partial<CapturedInsightInsert> {
+  const { created_at, ...update } = capturedInsightDraftToInsert(draft);
+  return update;
+}
+
+export function rowToWorkSessionDraft(row: CapturedInsightRow): WorkSessionDraft {
+  const rawValue = row.raw_text ?? row.content;
+  const payload = unpack<CapturedInsightDraftPayload>("brain-dump-draft", rawValue);
+  if (payload?.draft) {
+    return {
+      ...payload.draft,
+      draftId: row.id,
+      selected: payload.draft.selected ?? true,
+      saved: safeCapturedInsightStatus(row.status) !== "unreviewed",
+    };
+  }
+
+  const category = parsedTypeToCategory(row.parsed_type);
+  const title = row.content || rawValue.split("\n")[0]?.slice(0, 110) || "Captured insight";
+  return {
+    draftId: row.id,
+    selected: true,
+    category,
+    title,
+    body: row.content || rawValue,
+    branch: safeArea(row.branch),
+    project: "",
+    type: category === "Task" ? "Task" : "Idea",
+    status: category === "Task" ? "Idea" : "Outline",
+    priority: "Medium",
+    nextStep: "",
+    notes: "Source: Brain Dump",
+    isToday: false,
+    rawText: rawValue,
+    confidence: "Low",
+    confidenceSignals: ["Recovered from captured insight"],
+    saved: safeCapturedInsightStatus(row.status) !== "unreviewed",
   };
 }
 

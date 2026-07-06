@@ -20,6 +20,7 @@ export function useCapturedInsights() {
       const { data, error } = await supabase
         .from("captured_insights")
         .select("*")
+        .or("status.is.null,status.eq.reviewed")
         .order("created_at", { ascending: false });
       if (cancelled) return;
       if (error) {

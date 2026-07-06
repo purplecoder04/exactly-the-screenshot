@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Brain, Eraser, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
+import { useCapturedInsightQueue } from "@/hooks/useCapturedInsightQueue";
 import { WorkSessionReview } from "@/components/shared/WorkSessionReview";
 import { useLocalState } from "@/hooks/useLocalState";
 import { useWorkSessionSaver } from "@/hooks/useWorkSessionSaver";
@@ -27,10 +28,26 @@ export const Route = createFileRoute("/brain-dump")({
 
 function BrainDumpPage() {
   const [draftText, setDraftText] = useLocalState<string>(STORAGE_KEYS.brainDumpDraft, "");
-  const [drafts, setDrafts] = useState<WorkSessionDraft[]>([]);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { saveDrafts } = useWorkSessionSaver();
+  const {
+    drafts,
+    setDrafts,
+    isLoading,
+    saveParsedDrafts,
+    updateDraft: updateQueuedDraft,
+    persistDrafts,
+    updateStatuses,
+    deleteDraft,
+    deleteDrafts,
+  } = useCapturedInsightQueue();
+
+  useEffect(() => {
+    if (!isLoading && drafts.length > 0) {
+      setHasAnalyzed(true);
+    }
+  }, [drafts.length, isLoading]);
 
   const analyze = async () => {
     if (!draftText.trim()) {
@@ -40,37 +57,58 @@ function BrainDumpPage() {
     setIsAnalyzing(true);
     try {
       const parsed = await parseTextToWorkSessionDrafts(draftText, "Brain Dump");
-      setDrafts(parsed.map((draft) => ({ ...draft, collapsed: draft.confidence === "High" })));
+      const savedDrafts = await saveParsedDrafts(
+        parsed.map((draft) => ({ ...draft, collapsed: draft.confidence === "High" })),
+      );
       setHasAnalyzed(true);
-      toast.success(`${parsed.length} item${parsed.length === 1 ? "" : "s"} ready for review.`);
+      toast.success(
+        `${savedDrafts.length} unreviewed item${savedDrafts.length === 1 ? "" : "s"} ready for review.`,
+      );
+    } catch (error) {
+      console.error("[BrainDumpPage] analyze failed", error);
+      toast.error("Brain Dump could not save the review queue yet. Check the Supabase table setup.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const updateDraft = (draftId: string, patch: Partial<WorkSessionDraft>) => {
-    setDrafts((current) =>
-      current.map((draft) =>
-        draft.draftId === draftId ? normalizeDraftPatch(draft, patch) : draft,
-      ),
-    );
+    const target = drafts.find((draft) => draft.draftId === draftId);
+    if (!target) return;
+    updateQueuedDraft(normalizeDraftPatch(target, patch));
   };
 
-  const saveReviewed = () => {
+  const saveReviewed = async () => {
     const selectedIds = new Set(
       drafts
         .filter((draft) => draft.selected && !draft.saved && draft.title.trim())
         .map((draft) => draft.draftId),
     );
-    const result = saveDrafts(drafts.filter((draft) => !draft.saved));
-    setDrafts((current) =>
-      current.map((draft) =>
-        selectedIds.has(draft.draftId)
-          ? { ...draft, selected: false, saved: true, collapsed: true }
-          : draft,
-      ),
+    const selectedDrafts = drafts.filter(
+      (draft) => selectedIds.has(draft.draftId) && !draft.saved,
     );
-    toast.success(`${result.total} reviewed item${result.total === 1 ? "" : "s"} saved.`);
+    try {
+      const result = saveDrafts(drafts.filter((draft) => !draft.saved), {
+        saveCapturedInsights: false,
+      });
+      await updateStatuses(
+        selectedDrafts.map((draft) => ({
+          id: draft.draftId,
+          status: isConvertedDraft(draft) ? "converted" : "reviewed",
+        })),
+      );
+      setDrafts((current) =>
+        current.map((draft) =>
+          selectedIds.has(draft.draftId)
+            ? { ...draft, selected: false, saved: true, collapsed: true }
+            : draft,
+        ),
+      );
+      toast.success(`${result.total} reviewed item${result.total === 1 ? "" : "s"} saved.`);
+    } catch (error) {
+      console.error("[BrainDumpPage] save reviewed failed", error);
+      toast.error("Brain Dump could not save yet. Check the Supabase table setup.");
+    }
   };
 
   return (
@@ -103,6 +141,7 @@ function BrainDumpPage() {
                 setDraftText("");
                 setDrafts([]);
                 setHasAnalyzed(false);
+                deleteDrafts(drafts.map((draft) => draft.draftId));
               }}
             >
               <Eraser className="mr-1 h-4 w-4" />
@@ -133,15 +172,37 @@ function BrainDumpPage() {
           drafts={drafts}
           sourceDescription="Brain Dump"
           onUpdate={updateDraft}
-          onBulkUpdate={(updater) => setDrafts((current) => updater(current))}
-          onRemove={(draftId) =>
-            setDrafts((current) => current.filter((draft) => draft.draftId !== draftId))
-          }
-          onSave={saveReviewed}
+          onBulkUpdate={(updater) => {
+            setDrafts((current) => {
+              const next = updater(current);
+              if (next.length === 0 && current.length > 0) {
+                deleteDrafts(current.map((draft) => draft.draftId));
+              } else {
+                void persistDrafts(next).catch((error) => {
+                  console.error("[BrainDumpPage] bulk update failed", error);
+                  toast.error("Brain Dump could not update the review queue.");
+                });
+              }
+              return next;
+            });
+          }}
+          onRemove={deleteDraft}
+          onSave={() => void saveReviewed()}
         />
       )}
     </div>
   );
+}
+
+function isConvertedDraft(draft: WorkSessionDraft) {
+  return [
+    "Task",
+    "Idea",
+    "Parking Lot",
+    "Framework",
+    "Product",
+    "Product Update",
+  ].includes(draft.category);
 }
 
 function normalizeDraftPatch(

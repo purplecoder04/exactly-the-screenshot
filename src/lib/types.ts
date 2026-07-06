@@ -73,6 +73,19 @@ export const WORK_SESSION_CATEGORIES = [
 ] as const;
 export type WorkSessionCategory = (typeof WORK_SESSION_CATEGORIES)[number];
 
+export const CAPTURED_INSIGHT_PARSED_TYPES = [
+  "task",
+  "idea",
+  "framework",
+  "product",
+  "decision",
+  "note",
+] as const;
+export type CapturedInsightParsedType = (typeof CAPTURED_INSIGHT_PARSED_TYPES)[number];
+
+export const CAPTURED_INSIGHT_STATUSES = ["unreviewed", "reviewed", "converted"] as const;
+export type CapturedInsightStatus = (typeof CAPTURED_INSIGHT_STATUSES)[number];
+
 export const FRAMEWORK_STATUSES = ["Idea", "Draft", "Active", "Archived"] as const;
 export type FrameworkStatus = (typeof FRAMEWORK_STATUSES)[number];
 

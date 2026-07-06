@@ -129,21 +129,30 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          parsed_type: string | null
+          raw_text: string | null
           source: string | null
+          status: string | null
         }
         Insert: {
           branch?: string | null
           content: string
           created_at?: string | null
           id?: string
+          parsed_type?: string | null
+          raw_text?: string | null
           source?: string | null
+          status?: string | null
         }
         Update: {
           branch?: string | null
           content?: string
           created_at?: string | null
           id?: string
+          parsed_type?: string | null
+          raw_text?: string | null
           source?: string | null
+          status?: string | null
         }
         Relationships: []
       }
