@@ -152,7 +152,11 @@ function Dashboard() {
     [tasks],
   );
 
-  const continueTask = todayTasks[0] ?? tasks.find((task) => !task.isDone) ?? tasks[0];
+  const rememberedTask = useMemo(
+    () => (continueState.taskId ? tasks.find((task) => task.id === continueState.taskId) : undefined),
+    [continueState.taskId, tasks],
+  );
+  const continueTask = rememberedTask ?? todayTasks[0] ?? tasks.find((task) => !task.isDone) ?? tasks[0];
   const completedThisMonth = tasks.filter((task) => task.isDone).length;
   const gardenProgress = Math.min(
     100,
@@ -370,15 +374,23 @@ function ContinueWorkingCard({
   onResume: (task: TaskItem) => void;
 }) {
   const areaUrl = state.lastPage || (task ? AREA_ROUTES[task.branch] : "/today");
+  const pageTitle = labelForPage(state.lastPage);
   const title =
-    state.lastProduct || task?.project || task?.title || "Choose your next beautiful thing";
-  const subtitle = state.lastLesson || state.lastWorkbook || task?.type || "Creative Project";
-  const nextStep = task?.nextStep || "Open the studio and keep moving.";
+    state.lastProduct || task?.project || task?.title || pageTitle || "Choose your next beautiful thing";
+  const subtitle =
+    state.lastLesson ||
+    state.lastWorkbook ||
+    state.lastApp ||
+    task?.type ||
+    (state.lastBranch ? `${state.lastBranch} workspace` : "Creative Project");
+  const nextStep =
+    task?.nextStep ||
+    (state.lastPage ? "Open the last place you were working." : "Open the studio and keep moving.");
   return (
     <section className="planner-card overflow-hidden rounded-2xl p-4 md:p-5">
       <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-ink">
         <Sparkles className="h-4 w-4 text-gold" />
-        Continue Working
+        Continue where you left off
       </h2>
       <div className="grid gap-4 md:grid-cols-[220px_1fr]">
         <div className="flex min-h-56 items-center justify-center rounded-2xl border border-blush/50 bg-blush/15 shadow-inner">
@@ -414,6 +426,22 @@ function ContinueWorkingCard({
       </div>
     </section>
   );
+}
+
+function labelForPage(page: string) {
+  const labels: Record<string, string> = {
+    "/today": "Today's Top 3",
+    "/brain-dump": "Brain Dump",
+    "/parking-lot": "Idea Garden",
+    "/import-tasks": "Import Work Session",
+    "/weekly-planning": "Weekly Planning",
+    "/weekly-log": "Weekly Log",
+    "/products": "Product Catalog",
+    "/frameworks": "Framework Library",
+    "/library": "Library",
+  };
+
+  return labels[page] ?? "";
 }
 
 function WorkspacesCard() {

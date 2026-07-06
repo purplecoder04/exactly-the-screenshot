@@ -185,6 +185,13 @@ export type Database = {
           app: string | null
           branch: string | null
           id: string
+          last_app: string | null
+          last_branch: string | null
+          last_lesson: string | null
+          last_page: string | null
+          last_product: string | null
+          last_task: string | null
+          last_workbook: string | null
           lesson: string | null
           page: string | null
           product: string | null
@@ -196,6 +203,13 @@ export type Database = {
           app?: string | null
           branch?: string | null
           id?: string
+          last_app?: string | null
+          last_branch?: string | null
+          last_lesson?: string | null
+          last_page?: string | null
+          last_product?: string | null
+          last_task?: string | null
+          last_workbook?: string | null
           lesson?: string | null
           page?: string | null
           product?: string | null
@@ -207,6 +221,13 @@ export type Database = {
           app?: string | null
           branch?: string | null
           id?: string
+          last_app?: string | null
+          last_branch?: string | null
+          last_lesson?: string | null
+          last_page?: string | null
+          last_product?: string | null
+          last_task?: string | null
+          last_workbook?: string | null
           lesson?: string | null
           page?: string | null
           product?: string | null

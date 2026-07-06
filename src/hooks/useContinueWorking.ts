@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { nowISO } from "@/lib/storage";
-import { SAMPLE_CONTINUE_WORKING } from "@/data/sampleData";
 import {
   continueWorkingToInsert,
   rowToContinueWorking,
   type ContinueWorkingRow,
 } from "@/lib/mappers/operatingSystem";
 import type { ContinueWorkingState, TaskItem, WorkspaceArea } from "@/lib/types";
+
+const CONTINUE_WORKING_ROW_ID = "00000000-0000-4000-8000-000000000001";
 
 const AREA_ROUTES: Record<WorkspaceArea, string> = {
   Brand: "/brand",
@@ -21,9 +22,20 @@ const AREA_ROUTES: Record<WorkspaceArea, string> = {
   "Social Media": "/social-media",
 };
 
+const EMPTY_CONTINUE_WORKING: ContinueWorkingState = {
+  lastBranch: "",
+  lastProduct: "",
+  lastLesson: "",
+  lastWorkbook: "",
+  lastApp: "",
+  lastPage: "",
+  updatedAt: nowISO(),
+};
+
 export function useContinueWorking() {
-  const [state, setState] = useState<ContinueWorkingState>(SAMPLE_CONTINUE_WORKING);
+  const [state, setState] = useState<ContinueWorkingState>(EMPTY_CONTINUE_WORKING);
   const [recordId, setRecordId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,11 +49,12 @@ export function useContinueWorking() {
       if (cancelled) return;
       if (error) {
         console.error("[useContinueWorking] load failed", error);
-        return;
-      }
-      if (data) {
+      } else if (data) {
         setRecordId(data.id);
         setState(rowToContinueWorking(data as ContinueWorkingRow));
+      }
+      if (!cancelled) {
+        setIsLoading(false);
       }
     })();
     return () => {
@@ -65,7 +78,7 @@ export function useContinueWorking() {
         } else {
           void supabase
             .from("continue_working_state")
-            .insert(payload)
+            .upsert({ id: CONTINUE_WORKING_ROW_ID, ...payload }, { onConflict: "id" })
             .select()
             .single()
             .then(({ data, error }) => {
@@ -97,5 +110,5 @@ export function useContinueWorking() {
     [remember],
   );
 
-  return { state, remember, rememberTask };
+  return { state, remember, rememberTask, isLoading };
 }

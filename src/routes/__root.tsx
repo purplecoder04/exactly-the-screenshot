@@ -4,10 +4,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -15,6 +16,8 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppHeader } from "@/components/AppHeader";
 import { Toaster } from "@/components/ui/sonner";
+import { useContinueWorking } from "@/hooks/useContinueWorking";
+import type { ContinueWorkingState, WorkspaceArea } from "@/lib/types";
 
 function NotFoundComponent() {
   return (
@@ -118,6 +121,81 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+type ContinueMemoryPatch = Partial<ContinueWorkingState>;
+
+const AREA_ROUTE_MEMORY: Record<WorkspaceArea, ContinueMemoryPatch> = {
+  Brand: { lastBranch: "Brand", lastProduct: "Brand" },
+  Rise: { lastBranch: "Rise", lastProduct: "Rise" },
+  Land: { lastBranch: "Land", lastProduct: "Land" },
+  Rebuild: { lastBranch: "Rebuild", lastProduct: "Rebuild" },
+  "Meet at the Heal": {
+    lastBranch: "Meet at the Heal",
+    lastProduct: "Meet at the Heal",
+  },
+  "Kit Factory App": {
+    lastBranch: "Kit Factory App",
+    lastProduct: "Kit Factory App",
+    lastApp: "Kit Factory App",
+  },
+  "Social Media App": {
+    lastBranch: "Social Media App",
+    lastProduct: "Social Media App",
+    lastApp: "Social Media App",
+  },
+  Website: { lastBranch: "Website", lastProduct: "Website", lastApp: "Website Studio" },
+  "Social Media": {
+    lastBranch: "Social Media",
+    lastProduct: "Social Media",
+    lastApp: "Content Studio",
+  },
+};
+
+const ROUTE_MEMORY: Record<string, ContinueMemoryPatch> = {
+  "/brand": AREA_ROUTE_MEMORY.Brand,
+  "/rise": AREA_ROUTE_MEMORY.Rise,
+  "/land": AREA_ROUTE_MEMORY.Land,
+  "/rebuild": AREA_ROUTE_MEMORY.Rebuild,
+  "/meet-at-the-heal": AREA_ROUTE_MEMORY["Meet at the Heal"],
+  "/kit-factory-app": AREA_ROUTE_MEMORY["Kit Factory App"],
+  "/social-media-app": AREA_ROUTE_MEMORY["Social Media App"],
+  "/website": AREA_ROUTE_MEMORY.Website,
+  "/social-media": AREA_ROUTE_MEMORY["Social Media"],
+  "/today": { lastBranch: "", lastProduct: "Today's Top 3" },
+  "/brain-dump": { lastBranch: "", lastProduct: "Brain Dump" },
+  "/parking-lot": { lastBranch: "", lastProduct: "Idea Garden" },
+  "/import-tasks": { lastBranch: "", lastProduct: "Import Work Session" },
+  "/weekly-planning": { lastBranch: "", lastProduct: "Weekly Planning" },
+  "/weekly-log": { lastBranch: "", lastProduct: "Weekly Log" },
+  "/products": { lastBranch: "", lastProduct: "Product Catalog" },
+  "/frameworks": { lastBranch: "", lastProduct: "Framework Library" },
+  "/library": { lastBranch: "", lastProduct: "Library" },
+};
+
+function ContinueWorkingTracker() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { remember, isLoading } = useContinueWorking();
+  const lastTrackedPath = useRef<string>("");
+
+  useEffect(() => {
+    if (isLoading || pathname === "/" || lastTrackedPath.current === pathname) return;
+
+    const patch = ROUTE_MEMORY[pathname];
+    if (!patch) return;
+
+    lastTrackedPath.current = pathname;
+    remember({
+      lastLesson: "",
+      lastWorkbook: "",
+      lastApp: "",
+      taskId: undefined,
+      ...patch,
+      lastPage: pathname,
+    });
+  }, [isLoading, pathname, remember]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -132,6 +210,7 @@ function AppShell() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
+        <ContinueWorkingTracker />
         <AppSidebar />
         <SidebarInset className="flex min-w-0 flex-1 flex-col bg-transparent">
           <AppHeader />

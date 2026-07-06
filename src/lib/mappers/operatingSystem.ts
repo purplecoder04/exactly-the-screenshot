@@ -285,26 +285,26 @@ export function decisionItemToInsert(item: DecisionItem): DecisionInsert {
 
 export function rowToContinueWorking(row: ContinueWorkingRow): ContinueWorkingState {
   return {
-    lastBranch: safeOptionalArea(row.branch) ?? "",
-    lastProduct: row.product ?? "",
-    lastLesson: row.lesson ?? "",
-    lastWorkbook: row.workbook ?? "",
-    lastApp: row.app ?? "",
-    lastPage: row.page ?? "/",
-    taskId: row.task ?? undefined,
+    lastBranch: safeOptionalArea(row.last_branch ?? row.branch) ?? "",
+    lastProduct: row.last_product ?? row.product ?? "",
+    lastLesson: row.last_lesson ?? row.lesson ?? "",
+    lastWorkbook: row.last_workbook ?? row.workbook ?? "",
+    lastApp: row.last_app ?? row.app ?? "",
+    lastPage: row.last_page ?? row.page ?? "",
+    taskId: row.last_task ?? row.task ?? undefined,
     updatedAt: row.updated_at ?? now(),
   };
 }
 
 export function continueWorkingToInsert(state: ContinueWorkingState): ContinueWorkingInsert {
   return {
-    branch: state.lastBranch || null,
-    product: state.lastProduct || null,
-    lesson: state.lastLesson || null,
-    workbook: state.lastWorkbook || null,
-    app: state.lastApp || null,
-    page: state.lastPage || null,
-    task: state.taskId ?? null,
+    last_branch: state.lastBranch || null,
+    last_product: state.lastProduct || null,
+    last_lesson: state.lastLesson || null,
+    last_workbook: state.lastWorkbook || null,
+    last_app: state.lastApp || null,
+    last_page: state.lastPage || null,
+    last_task: state.taskId ?? null,
     updated_at: state.updatedAt,
   };
 }
