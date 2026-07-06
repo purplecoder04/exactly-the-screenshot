@@ -227,31 +227,34 @@ export type Database = {
       }
       decision_items: {
         Row: {
-          branch: string | null
-          context: string | null
           created_at: string | null
-          decision: string | null
+          description: string | null
           id: string
+          priority: string | null
+          related_branch: string | null
           status: string | null
           title: string
+          updated_at: string | null
         }
         Insert: {
-          branch?: string | null
-          context?: string | null
           created_at?: string | null
-          decision?: string | null
+          description?: string | null
           id?: string
+          priority?: string | null
+          related_branch?: string | null
           status?: string | null
           title: string
+          updated_at?: string | null
         }
         Update: {
-          branch?: string | null
-          context?: string | null
           created_at?: string | null
-          decision?: string | null
+          description?: string | null
           id?: string
+          priority?: string | null
+          related_branch?: string | null
           status?: string | null
           title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

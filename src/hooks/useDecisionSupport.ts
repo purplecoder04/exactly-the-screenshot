@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { newId, nowISO } from "@/lib/storage";
 import {
   decisionToInsert,
+  isDecisionSupportRow,
   rowToDecision,
   type DecisionRow,
 } from "@/lib/mappers/operatingSystem";
@@ -25,7 +26,7 @@ export function useDecisionSupport() {
         console.error("[useDecisionSupport] load failed", error);
         return;
       }
-      setDecisions((data as DecisionRow[]).map(rowToDecision));
+      setDecisions((data as DecisionRow[]).filter(isDecisionSupportRow).map(rowToDecision));
     })();
     return () => {
       cancelled = true;

@@ -112,6 +112,9 @@ export const DECISION_OUTCOMES = [
 ] as const;
 export type DecisionOutcome = (typeof DECISION_OUTCOMES)[number];
 
+export const DECISION_ITEM_STATUSES = ["pending", "accepted", "dismissed"] as const;
+export type DecisionItemStatus = (typeof DECISION_ITEM_STATUSES)[number];
+
 export type TaskItem = {
   id: string;
   title: string;
@@ -246,6 +249,21 @@ export type DecisionSupportItem = {
   score: number;
   outcome: DecisionOutcome;
   notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DecisionItem = {
+  id: string;
+  title: string;
+  description: string;
+  status: DecisionItemStatus;
+  priority: Priority;
+  relatedBranch: WorkspaceArea | "";
+  taskId?: string;
+  reasons?: string[];
+  estimatedMinutes?: number;
+  impactLabel?: "High" | "Medium" | "Low";
   createdAt: string;
   updatedAt: string;
 };

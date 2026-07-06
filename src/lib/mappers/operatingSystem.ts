@@ -8,10 +8,13 @@ import {
   type Branch,
   type CapturedInsight,
   type ContinueWorkingState,
+  type DecisionItem,
+  type DecisionItemStatus,
   type DecisionOutcome,
   type DecisionSupportItem,
   type LibraryCategory,
   type LibraryItem,
+  type Priority,
   type WeeklyNote,
   type WeeklyPlan,
   type WorkSessionCategory,
@@ -62,6 +65,16 @@ function unpack<T>(kind: string, value?: string | null): Partial<T> | null {
   return null;
 }
 
+function packedKind(value?: string | null): string {
+  if (!value) return "";
+  try {
+    const parsed = JSON.parse(value) as Partial<PackedPayload<unknown>>;
+    return parsed.__bcKind ?? "";
+  } catch {
+    return "";
+  }
+}
+
 function safeArea(value?: string | null): WorkspaceArea {
   return ALL_AREAS.includes(value as WorkspaceArea) ? (value as WorkspaceArea) : "Brand";
 }
@@ -84,6 +97,14 @@ function safeDecisionOutcome(value?: string | null): DecisionOutcome {
   return DECISION_OUTCOMES.includes(value as DecisionOutcome)
     ? (value as DecisionOutcome)
     : "Needs Decision";
+}
+
+function safeDecisionItemStatus(value?: string | null): DecisionItemStatus {
+  return value === "accepted" || value === "dismissed" ? value : "pending";
+}
+
+function safePriority(value?: string | null): Priority {
+  return value === "High" || value === "Low" ? value : "Medium";
 }
 
 function safeInsightCategory(value?: string | null): CapturedInsight["category"] {
@@ -134,12 +155,12 @@ export function weeklyPlanToInsert(plan: WeeklyPlan): WeeklyPlanInsert {
 }
 
 export function rowToDecision(row: DecisionRow): DecisionSupportItem {
-  const payload = unpack<DecisionSupportItem>("decision-support", row.context);
-  const branch = safeArea(payload?.branch ?? row.branch);
+  const payload = unpack<DecisionSupportItem>("decision-support", row.description);
+  const branch = safeArea(payload?.branch ?? row.related_branch);
   return {
     id: row.id,
     title: row.title,
-    context: payload?.context ?? row.context ?? "",
+    context: payload?.context ?? row.description ?? "",
     branch,
     urgency: payload?.urgency ?? 3,
     impact: payload?.impact ?? 3,
@@ -147,21 +168,77 @@ export function rowToDecision(row: DecisionRow): DecisionSupportItem {
     clarity: payload?.clarity ?? 3,
     reversible: payload?.reversible ?? true,
     score: payload?.score ?? 0,
-    outcome: payload?.outcome ?? safeDecisionOutcome(row.decision ?? row.status),
+    outcome: payload?.outcome ?? safeDecisionOutcome(row.status),
     notes: payload?.notes ?? "",
     createdAt: row.created_at ?? now(),
-    updatedAt: payload?.updatedAt ?? row.created_at ?? now(),
+    updatedAt: payload?.updatedAt ?? row.updated_at ?? row.created_at ?? now(),
   };
 }
 
 export function decisionToInsert(decision: DecisionSupportItem): DecisionInsert {
+  const timestamp = decision.updatedAt || now();
   return {
     title: decision.title,
-    branch: decision.branch,
-    context: pack("decision-support", decision),
-    decision: decision.outcome,
-    status: decision.outcome,
+    description: pack("decision-support", decision),
+    status: "pending",
+    priority: decision.outcome === "Do Now" ? "High" : "Medium",
+    related_branch: decision.branch,
     created_at: decision.createdAt,
+    updated_at: timestamp,
+  };
+}
+
+export function isDecisionSupportRow(row: DecisionRow): boolean {
+  return packedKind(row.description) === "decision-support";
+}
+
+export function isDecisionEngineRow(row: DecisionRow): boolean {
+  return packedKind(row.description) === "decision-engine-recommendation";
+}
+
+type DecisionEnginePayload = {
+  description: string;
+  taskId?: string;
+  reasons?: string[];
+  estimatedMinutes?: number;
+  impactLabel?: "High" | "Medium" | "Low";
+};
+
+export function rowToDecisionItem(row: DecisionRow): DecisionItem {
+  const payload = unpack<DecisionEnginePayload>("decision-engine-recommendation", row.description);
+  return {
+    id: row.id,
+    title: row.title,
+    description: payload?.description ?? row.description ?? "",
+    status: safeDecisionItemStatus(row.status),
+    priority: safePriority(row.priority),
+    relatedBranch: safeOptionalArea(row.related_branch) ?? "",
+    taskId: payload?.taskId,
+    reasons: payload?.reasons,
+    estimatedMinutes: payload?.estimatedMinutes,
+    impactLabel: payload?.impactLabel,
+    createdAt: row.created_at ?? now(),
+    updatedAt: row.updated_at ?? row.created_at ?? now(),
+  };
+}
+
+export function decisionItemToInsert(item: DecisionItem): DecisionInsert {
+  const timestamp = item.updatedAt || now();
+  const payload: DecisionEnginePayload = {
+    description: item.description,
+    taskId: item.taskId,
+    reasons: item.reasons,
+    estimatedMinutes: item.estimatedMinutes,
+    impactLabel: item.impactLabel,
+  };
+  return {
+    title: item.title,
+    description: pack("decision-engine-recommendation", payload),
+    status: item.status,
+    priority: item.priority,
+    related_branch: item.relatedBranch || null,
+    created_at: item.createdAt,
+    updated_at: timestamp,
   };
 }
 

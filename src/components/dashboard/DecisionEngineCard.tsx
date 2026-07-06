@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { ArrowRight, Brain, ClipboardCheck, Play, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
@@ -16,13 +16,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { PriorityBadge, StatusBadge } from "@/components/shared/Badges";
 import { AreaPill } from "@/components/shared/AreaPill";
 import { useContinueWorking } from "@/hooks/useContinueWorking";
+import { useDecisionItems } from "@/hooks/useDecisionItems";
 import { useDecisionSupport } from "@/hooks/useDecisionSupport";
 import { useParkingLot } from "@/hooks/useParkingLot";
 import { useTasks } from "@/hooks/useTasks";
 import { useWeeklyPlanning } from "@/hooks/useWeeklyPlanning";
 import { scoreDecision } from "@/lib/decisionSupport";
 import { recommendTopTasks, type DecisionRecommendation } from "@/lib/decisionEngine";
-import { ALL_AREAS, type DecisionSupportItem, type WorkspaceArea } from "@/lib/types";
+import { ALL_AREAS, type DecisionItem, type DecisionSupportItem, type WorkspaceArea } from "@/lib/types";
 
 const AREA_ROUTES = {
   Brand: "/brand",
@@ -37,11 +38,13 @@ const AREA_ROUTES = {
 } as const;
 
 export function DecisionEngineCard() {
+  const navigate = useNavigate();
   const { tasks, addTask, moveToToday } = useTasks();
   const { addItem } = useParkingLot();
   const { plan } = useWeeklyPlanning();
   const { rememberTask } = useContinueWorking();
   const { decisions, addDecision } = useDecisionSupport();
+  const { items: decisionItems, recordRecommendations } = useDecisionItems();
   const recommendations = recommendTopTasks({ tasks, weeklyPlan: plan });
   const [decisionForm, setDecisionForm] = useState({
     title: "",
@@ -57,9 +60,17 @@ export function DecisionEngineCard() {
 
   const decisionScore = useMemo(() => scoreDecision(decisionForm), [decisionForm]);
 
-  const acceptPlan = () => {
+  const acceptPlan = async () => {
     recommendations.forEach((item) => moveToToday(item.task.id));
+    await recordRecommendations(recommendations, "accepted");
     toast.success("Today's plan accepted. Your Top 3 are marked for Today.");
+  };
+
+  const customizePlan = async () => {
+    if (recommendations.length > 0) {
+      await recordRecommendations(recommendations, "pending");
+    }
+    await navigate({ to: "/today" });
   };
 
   const saveDecision = () => {
@@ -121,14 +132,12 @@ export function DecisionEngineCard() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button disabled={recommendations.length === 0} onClick={acceptPlan}>
+          <Button disabled={recommendations.length === 0} onClick={() => void acceptPlan()}>
             Accept Today's Plan
           </Button>
-          <Button asChild variant="outline">
-            <Link to="/today">
-              <SlidersHorizontal className="mr-1 h-4 w-4" />
-              Customize Today's Plan
-            </Link>
+          <Button variant="outline" onClick={() => void customizePlan()}>
+            <SlidersHorizontal className="mr-1 h-4 w-4" />
+            Customize Today's Plan
           </Button>
         </div>
       </div>
@@ -149,6 +158,8 @@ export function DecisionEngineCard() {
           ))}
         </div>
       )}
+
+      <DecisionHistory items={decisionItems} />
 
       <div className="mt-5 rounded-2xl border border-paper-line bg-warm-white/70 p-4">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
@@ -282,6 +293,44 @@ export function DecisionEngineCard() {
         </div>
       </div>
     </section>
+  );
+}
+
+function DecisionHistory({ items }: { items: DecisionItem[] }) {
+  const visible = items.slice(0, 5);
+
+  if (visible.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 rounded-2xl border border-paper-line bg-warm-white/70 p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-ink">
+          Decision History
+        </h3>
+        <span className="text-xs font-semibold text-muted-foreground">
+          {items.length} saved plan item{items.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="grid gap-2">
+        {visible.map((item) => (
+          <div
+            key={item.id}
+            className="flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-card/75 p-2 text-sm"
+          >
+            <span className="min-w-0 flex-1 font-semibold text-ink break-words">
+              {item.title}
+            </span>
+            {item.relatedBranch && <AreaPill area={item.relatedBranch} />}
+            <span className="rounded-full bg-lavender/35 px-2.5 py-0.5 text-[11px] font-semibold capitalize text-plum-deep">
+              {item.status}
+            </span>
+            <PriorityBadge priority={item.priority} />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
