@@ -591,24 +591,33 @@ export type Database = {
       import_work_sessions: {
         Row: {
           created_at: string | null
+          file_name: string | null
+          file_type: string | null
           id: string
           parsed_items: Json | null
           raw_content: string | null
           source_type: string | null
+          status: string | null
         }
         Insert: {
           created_at?: string | null
+          file_name?: string | null
+          file_type?: string | null
           id?: string
           parsed_items?: Json | null
           raw_content?: string | null
           source_type?: string | null
+          status?: string | null
         }
         Update: {
           created_at?: string | null
+          file_name?: string | null
+          file_type?: string | null
           id?: string
           parsed_items?: Json | null
           raw_content?: string | null
           source_type?: string | null
+          status?: string | null
         }
         Relationships: []
       }

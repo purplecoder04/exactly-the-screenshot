@@ -29,12 +29,19 @@ export type ImportedTaskDraft = Pick<
   project?: string;
 };
 
-const SUPPORTED_EXTENSIONS = [".txt", ".md", ".docx"] as const;
+export const SUPPORTED_EXTENSIONS = [".txt", ".md", ".docx"] as const;
+export type SupportedImportFileType = (typeof SUPPORTED_EXTENSIONS)[number];
 const TASK_PREFIX_RE = /^\s*(TODO|Task|Next Step|Fix|Build|Add|Update|Test):\s*(.+?)\s*$/i;
 
 export function isSupportedImportFile(fileName: string) {
+  return Boolean(getSupportedImportFileType(fileName));
+}
+
+export function getSupportedImportFileType(
+  fileName: string,
+): SupportedImportFileType | undefined {
   const lower = fileName.toLowerCase();
-  return SUPPORTED_EXTENSIONS.some((extension) => lower.endsWith(extension));
+  return SUPPORTED_EXTENSIONS.find((extension) => lower.endsWith(extension));
 }
 
 export async function extractTextFromFile(file: File): Promise<string> {

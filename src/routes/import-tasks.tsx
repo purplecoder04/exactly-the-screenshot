@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ClipboardPaste, FileText, RefreshCcw, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PlannerPageHeader } from "@/components/shared/PlannerPageHeader";
 import { WorkSessionReview } from "@/components/shared/WorkSessionReview";
+import { useImportWorkSessions } from "@/hooks/useImportWorkSessions";
 import { useWorkSessionSaver } from "@/hooks/useWorkSessionSaver";
 import { plannerAssets } from "@/lib/plannerAssets";
-import { extractTextFromFile, isSupportedImportFile } from "@/lib/documentImport";
+import {
+  extractTextFromFile,
+  getSupportedImportFileType,
+  isSupportedImportFile,
+} from "@/lib/documentImport";
 import { parseTextToWorkSessionDrafts, type WorkSessionDraft } from "@/lib/workSessionParser";
 
 export const Route = createFileRoute("/import-tasks")({
@@ -39,6 +44,24 @@ function ImportWorkSessionPage() {
   const [drafts, setDrafts] = useState<WorkSessionDraft[]>([]);
   const [savedCount, setSavedCount] = useState(0);
   const { saveDrafts } = useWorkSessionSaver();
+  const {
+    activeSession,
+    setActiveSession,
+    isLoading: isLoadingSession,
+    createSession,
+    updateSessionDrafts,
+    markReviewed,
+  } = useImportWorkSessions();
+
+  useEffect(() => {
+    if (!activeSession) return;
+    setStatus("review");
+    setError("");
+    setFileName(activeSession.fileName);
+    setSourceText(activeSession.rawContent);
+    setDrafts(activeSession.drafts);
+    setSavedCount(0);
+  }, [activeSession]);
 
   const resetImport = () => {
     setStatus("idle");
@@ -48,6 +71,7 @@ function ImportWorkSessionPage() {
     setPastedText("");
     setDrafts([]);
     setSavedCount(0);
+    setActiveSession(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -68,7 +92,7 @@ function ImportWorkSessionPage() {
     setIsParsing(true);
     try {
       const text = await extractTextFromFile(file);
-      await parseTextForReview(text, file.name);
+      await parseTextForReview(text, file.name, getSupportedImportFileType(file.name) ?? ".txt");
     } catch (err) {
       setStatus("idle");
       setError(err instanceof Error ? err.message : "The document could not be imported.");
@@ -77,14 +101,32 @@ function ImportWorkSessionPage() {
     }
   };
 
-  const parseTextForReview = async (text: string, label: string) => {
+  const parseTextForReview = async (
+    text: string,
+    label: string,
+    fileType: ".txt" | ".md" | ".docx",
+  ) => {
     const parsedDrafts = await parseTextToWorkSessionDrafts(text, label);
+    const collapsedDrafts = parsedDrafts.map((draft) => ({
+      ...draft,
+      collapsed: draft.confidence === "High",
+    }));
+    const savedSession = await createSession({
+      fileName: label,
+      fileType,
+      rawContent: text,
+      drafts: collapsedDrafts,
+    });
     setSourceText(text);
-    setDrafts(parsedDrafts);
+    setDrafts(savedSession.drafts);
     setStatus("review");
-    if (parsedDrafts.length === 0) {
+    if (collapsedDrafts.length === 0) {
       setError(
         "No structured items found. Try Task:, Decision:, Product:, Framework:, Parking Lot:, License Rule:, Note:, Captured Insight:, Meeting Note:, Founder Note:, or Prompt:.",
+      );
+    } else {
+      toast.success(
+        `${collapsedDrafts.length} unreviewed item${collapsedDrafts.length === 1 ? "" : "s"} ready for review.`,
       );
     }
   };
@@ -99,7 +141,7 @@ function ImportWorkSessionPage() {
     setSavedCount(0);
     setIsParsing(true);
     try {
-      await parseTextForReview(pastedText, "Pasted Work Session");
+      await parseTextForReview(pastedText, "Pasted Work Session", ".txt");
     } catch (err) {
       setStatus("idle");
       setError(err instanceof Error ? err.message : "The pasted work session could not be parsed.");
@@ -110,18 +152,38 @@ function ImportWorkSessionPage() {
 
   const updateDraft = (draftId: string, patch: Partial<WorkSessionDraft>) => {
     setDrafts((current) =>
-      current.map((draft) =>
-        draft.draftId === draftId ? normalizeDraftPatch(draft, patch) : draft,
+      persistDraftChanges(
+        current.map((draft) =>
+          draft.draftId === draftId ? normalizeDraftPatch(draft, patch) : draft,
+        ),
       ),
     );
   };
 
-  const saveReviewed = () => {
+  const persistDraftChanges = (nextDrafts: WorkSessionDraft[]) => {
+    if (activeSession?.id) {
+      void updateSessionDrafts(activeSession.id, nextDrafts).catch((err) => {
+        console.error("[ImportWorkSessionPage] update session failed", err);
+        toast.error("Import Work Session could not update the review queue.");
+      });
+    }
+    return nextDrafts;
+  };
+
+  const saveReviewed = async () => {
     const result = saveDrafts(drafts);
-    setSavedCount(result.total);
-    setStatus("saved");
-    setDrafts([]);
-    toast.success(`${result.total} reviewed item${result.total === 1 ? "" : "s"} saved.`);
+    try {
+      if (activeSession?.id) {
+        await markReviewed(activeSession.id, drafts);
+      }
+      setSavedCount(result.total);
+      setStatus("saved");
+      setDrafts([]);
+      toast.success(`${result.total} reviewed item${result.total === 1 ? "" : "s"} saved.`);
+    } catch (err) {
+      console.error("[ImportWorkSessionPage] save reviewed failed", err);
+      toast.error("Imported items saved, but the work session could not be marked reviewed yet.");
+    }
   };
 
   return (
@@ -220,16 +282,24 @@ function ImportWorkSessionPage() {
         </CardContent>
       </Card>
 
+      {isLoadingSession && (
+        <p className="text-sm text-muted-foreground">Checking for unreviewed imports...</p>
+      )}
+
       {status === "review" && (
         <WorkSessionReview
           drafts={drafts}
           sourceDescription={`${sourceText.length.toLocaleString()} characters in ${fileName || "uploaded file"}`}
           onUpdate={updateDraft}
-          onBulkUpdate={(updater) => setDrafts((current) => updater(current))}
-          onRemove={(draftId) =>
-            setDrafts((current) => current.filter((draft) => draft.draftId !== draftId))
+          onBulkUpdate={(updater) =>
+            setDrafts((current) => persistDraftChanges(updater(current)))
           }
-          onSave={saveReviewed}
+          onRemove={(draftId) =>
+            setDrafts((current) =>
+              persistDraftChanges(current.filter((draft) => draft.draftId !== draftId)),
+            )
+          }
+          onSave={() => void saveReviewed()}
         />
       )}
 
