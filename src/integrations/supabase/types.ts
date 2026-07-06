@@ -805,25 +805,37 @@ export type Database = {
       }
       library_items: {
         Row: {
+          branch: string | null
           category: string | null
           content: string | null
+          content_body: string | null
           created_at: string | null
+          description: string | null
           id: string
           title: string
+          updated_at: string | null
         }
         Insert: {
+          branch?: string | null
           category?: string | null
           content?: string | null
+          content_body?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           title: string
+          updated_at?: string | null
         }
         Update: {
+          branch?: string | null
           category?: string | null
           content?: string | null
+          content_body?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

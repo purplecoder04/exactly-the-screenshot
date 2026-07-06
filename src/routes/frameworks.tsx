@@ -262,10 +262,10 @@ function FrameworkCard({
           </div>
         </div>
         <div className="flex justify-end gap-1">
-          <Button size="icon" variant="ghost" onClick={onEdit}>
+          <Button size="icon" variant="ghost" onClick={onEdit} title="Edit Framework">
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" onClick={onDelete}>
+          <Button size="icon" variant="ghost" onClick={onDelete} title="Delete Framework">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

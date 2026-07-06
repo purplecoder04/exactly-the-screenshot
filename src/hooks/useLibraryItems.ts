@@ -25,7 +25,11 @@ export function useLibraryItems() {
         console.error("[useLibraryItems] load failed", error);
         return;
       }
-      setItems((data as LibraryItemRow[]).map(rowToLibraryItem));
+      setItems(
+        (data as LibraryItemRow[])
+          .filter((row) => row.category !== "Framework")
+          .map(rowToLibraryItem),
+      );
     })();
     return () => {
       cancelled = true;

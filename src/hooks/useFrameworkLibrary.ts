@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { nowISO } from "@/lib/storage";
 import type { FrameworkItem } from "@/lib/types";
 import {
-  frameworkPatchToUpdate,
   frameworkToInsert,
+  frameworkToUpdate,
   rowToFramework,
   type FrameworkRow,
 } from "@/lib/mappers/frameworks";
@@ -18,9 +18,10 @@ export function useFrameworkLibrary() {
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
-        .from("frameworks")
+        .from("library_items")
         .select("*")
-        .order("created_at", { ascending: false });
+        .eq("category", "Framework")
+        .order("updated_at", { ascending: false });
       if (cancelled) return;
       if (error) {
         console.error("[useFrameworkLibrary] load failed", error);
@@ -44,8 +45,8 @@ export function useFrameworkLibrary() {
     };
     setFrameworks((prev) => [optimistic, ...prev]);
     void supabase
-      .from("frameworks")
-      .insert(frameworkToInsert({ ...data, name: data.name }))
+      .from("library_items")
+      .insert(frameworkToInsert({ ...optimistic, name: optimistic.name }))
       .select()
       .single()
       .then(({ data: row, error }) => {
@@ -61,31 +62,43 @@ export function useFrameworkLibrary() {
     return optimistic;
   }, []);
 
-  const updateFramework = useCallback((id: string, patch: Partial<FrameworkItem>) => {
-    setFrameworks((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, ...patch, updatedAt: nowISO() } : f)),
-    );
-    const upd = frameworkPatchToUpdate(patch);
-    if (Object.keys(upd).length === 0) return;
-    void supabase
-      .from("frameworks")
-      .update(upd)
-      .eq("id", id)
-      .then(({ error }) => {
-        if (error) console.error("[useFrameworkLibrary] update failed", error);
-      });
-  }, []);
+  const updateFramework = useCallback(
+    (id: string, patch: Partial<FrameworkItem>) => {
+      const previous = frameworks.find((framework) => framework.id === id);
+      if (!previous) return;
+      const next = { ...previous, ...patch, updatedAt: nowISO() };
+      setFrameworks((prev) => prev.map((f) => (f.id === id ? next : f)));
+      void supabase
+        .from("library_items")
+        .update(frameworkToUpdate(next))
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) {
+            console.error("[useFrameworkLibrary] update failed", error);
+            setFrameworks((prev) => prev.map((f) => (f.id === id ? previous : f)));
+          }
+        });
+    },
+    [frameworks],
+  );
 
-  const deleteFramework = useCallback((id: string) => {
-    setFrameworks((prev) => prev.filter((f) => f.id !== id));
-    void supabase
-      .from("frameworks")
-      .delete()
-      .eq("id", id)
-      .then(({ error }) => {
-        if (error) console.error("[useFrameworkLibrary] delete failed", error);
-      });
-  }, []);
+  const deleteFramework = useCallback(
+    (id: string) => {
+      const previous = frameworks.find((framework) => framework.id === id);
+      setFrameworks((prev) => prev.filter((f) => f.id !== id));
+      void supabase
+        .from("library_items")
+        .delete()
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) {
+            console.error("[useFrameworkLibrary] delete failed", error);
+            if (previous) setFrameworks((prev) => [previous, ...prev]);
+          }
+        });
+    },
+    [frameworks],
+  );
 
   return { frameworks, setFrameworks, addFramework, updateFramework, deleteFramework };
 }

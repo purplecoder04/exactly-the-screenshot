@@ -402,25 +402,31 @@ export function rowToWorkSessionDraft(row: CapturedInsightRow): WorkSessionDraft
 }
 
 export function rowToLibraryItem(row: LibraryItemRow): LibraryItem {
-  const payload = unpack<LibraryItem>("library-item", row.content);
+  const body = row.content_body ?? row.content;
+  const payload = unpack<LibraryItem>("library-item", body);
   return {
     id: row.id,
     title: row.title,
     category: safeLibraryCategory(payload?.category ?? row.category),
     location: payload?.location ?? "",
     linkedProduct: payload?.linkedProduct ?? "",
-    notes: payload?.notes ?? row.content ?? "",
+    notes: payload?.notes ?? row.description ?? body ?? "",
     createdAt: row.created_at ?? now(),
-    updatedAt: payload?.updatedAt ?? row.created_at ?? now(),
+    updatedAt: payload?.updatedAt ?? row.updated_at ?? row.created_at ?? now(),
   };
 }
 
 export function libraryItemToInsert(item: LibraryItem): LibraryItemInsert {
+  const body = pack("library-item", item);
   return {
     title: item.title,
     category: item.category,
-    content: pack("library-item", item),
+    branch: item.location || null,
+    description: item.notes || item.linkedProduct || item.location || null,
+    content: body,
+    content_body: body,
     created_at: item.createdAt,
+    updated_at: item.updatedAt,
   };
 }
 
