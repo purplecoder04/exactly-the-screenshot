@@ -45,7 +45,7 @@ function WeeklyPlanningPage() {
         decorAsset={plannerAssets.goldSparkles}
         decorClassName="right-12 top-8 h-24 w-24 opacity-30"
         actions={
-          <Button onClick={() => toast.success("Weekly plan saved locally.")}>
+          <Button onClick={() => toast.success("Weekly plan saved.")}>
             <Save className="mr-1 h-4 w-4" />
             Save Plan
           </Button>
@@ -54,7 +54,7 @@ function WeeklyPlanningPage() {
 
       <PlannerPanel
         title="This Week"
-        description="Only one weekly plan is active at a time. Edits save locally as you work."
+        description="Only one weekly plan is active at a time. Edits save as you work."
       >
         <div className="grid gap-4">
           <Field label="Weekly Focus">

@@ -1,7 +1,12 @@
-import { useCallback } from "react";
-import { useLocalState } from "./useLocalState";
-import { STORAGE_KEYS, nowISO } from "@/lib/storage";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { nowISO } from "@/lib/storage";
 import { SAMPLE_CONTINUE_WORKING } from "@/data/sampleData";
+import {
+  continueWorkingToInsert,
+  rowToContinueWorking,
+  type ContinueWorkingRow,
+} from "@/lib/mappers/operatingSystem";
 import type { ContinueWorkingState, TaskItem, WorkspaceArea } from "@/lib/types";
 
 const AREA_ROUTES: Record<WorkspaceArea, string> = {
@@ -17,16 +22,64 @@ const AREA_ROUTES: Record<WorkspaceArea, string> = {
 };
 
 export function useContinueWorking() {
-  const [state, setState] = useLocalState<ContinueWorkingState>(
-    STORAGE_KEYS.continueWorking,
-    SAMPLE_CONTINUE_WORKING,
-  );
+  const [state, setState] = useState<ContinueWorkingState>(SAMPLE_CONTINUE_WORKING);
+  const [recordId, setRecordId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("continue_working_state")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("[useContinueWorking] load failed", error);
+        return;
+      }
+      if (data) {
+        setRecordId(data.id);
+        setState(rowToContinueWorking(data as ContinueWorkingRow));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const remember = useCallback(
     (patch: Partial<ContinueWorkingState>) => {
-      setState((current) => ({ ...current, ...patch, updatedAt: nowISO() }));
+      setState((current) => {
+        const next = { ...current, ...patch, updatedAt: nowISO() };
+        const payload = continueWorkingToInsert(next);
+        if (recordId) {
+          void supabase
+            .from("continue_working_state")
+            .update(payload)
+            .eq("id", recordId)
+            .then(({ error }) => {
+              if (error) console.error("[useContinueWorking] update failed", error);
+            });
+        } else {
+          void supabase
+            .from("continue_working_state")
+            .insert(payload)
+            .select()
+            .single()
+            .then(({ data, error }) => {
+              if (error || !data) {
+                console.error("[useContinueWorking] create failed", error);
+                return;
+              }
+              setRecordId(data.id);
+            });
+        }
+        return next;
+      });
     },
-    [setState],
+    [recordId],
   );
 
   const rememberTask = useCallback(
