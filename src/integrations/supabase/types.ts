@@ -1247,22 +1247,31 @@ export type Database = {
           created_at: string | null
           id: string
           note: string | null
+          note_text: string | null
+          related_branch: string | null
           type: string | null
           week_start: string | null
+          week_start_date: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           note?: string | null
+          note_text?: string | null
+          related_branch?: string | null
           type?: string | null
           week_start?: string | null
+          week_start_date?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           note?: string | null
+          note_text?: string | null
+          related_branch?: string | null
           type?: string | null
           week_start?: string | null
+          week_start_date?: string | null
         }
         Relationships: []
       }

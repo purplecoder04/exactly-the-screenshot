@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocalState } from "./useLocalState";
 import { STORAGE_KEYS, newId, nowISO } from "@/lib/storage";
-import { SAMPLE_WEEKLY_FOCUS, SAMPLE_REMINDER, SAMPLE_WEEKLY_NOTES } from "@/data/sampleData";
+import { SAMPLE_WEEKLY_FOCUS, SAMPLE_REMINDER } from "@/data/sampleData";
 import {
   rowToWeeklyNote,
   weeklyNoteToInsert,
@@ -28,16 +28,22 @@ export function useReminder() {
   return { reminder, setReminder };
 }
 
-export function useWeeklyNotes() {
-  const [notes, setNotes] = useState<WeeklyNote[]>(SAMPLE_WEEKLY_NOTES);
+export function useWeeklyNotes(weekStartDate?: string) {
+  const [notes, setNotes] = useState<WeeklyNote[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("weekly_notes")
         .select("*")
         .order("created_at", { ascending: false });
+
+      if (weekStartDate) {
+        query = query.eq("week_start_date", weekStartDate);
+      }
+
+      const { data, error } = await query;
       if (cancelled) return;
       if (error) {
         console.error("[useWeeklyNotes] load failed", error);
@@ -48,7 +54,7 @@ export function useWeeklyNotes() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [weekStartDate]);
 
   const addNote = useCallback(
     (data: Omit<WeeklyNote, "id" | "createdAt" | "areaType"> & { branch: WorkspaceArea }) => {

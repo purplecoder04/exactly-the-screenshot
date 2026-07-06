@@ -431,24 +431,35 @@ export function libraryItemToInsert(item: LibraryItem): LibraryItemInsert {
 }
 
 export function rowToWeeklyNote(row: WeeklyNoteRow): WeeklyNote {
-  const payload = unpack<WeeklyNote>("weekly-note", row.note);
-  const branch = safeArea(payload?.branch ?? row.type);
+  const rawNote = row.note_text ?? row.note;
+  const payload = unpack<WeeklyNote>("weekly-note", rawNote);
+  const branch = safeArea(payload?.branch ?? row.related_branch ?? row.type);
+  const weekStart = row.week_start_date ?? row.week_start ?? (row.created_at ?? now()).slice(0, 10);
+  const plainNote = rawNote ?? "";
   return {
     id: row.id,
-    title: payload?.title ?? row.type ?? "Weekly note",
+    title: payload?.title ?? titleFromNoteText(plainNote),
     branch,
     areaType: areaTypeFor(branch),
-    note: payload?.note ?? row.note ?? "",
-    date: payload?.date ?? row.week_start ?? (row.created_at ?? now()).slice(0, 10),
+    note: payload?.note ?? plainNote,
+    date: payload?.date ?? weekStart,
     createdAt: row.created_at ?? now(),
   };
 }
 
 export function weeklyNoteToInsert(note: WeeklyNote): WeeklyNoteInsert {
   return {
-    type: note.branch,
-    note: pack("weekly-note", note),
-    week_start: note.date,
+    week_start_date: note.date,
+    note_text: pack("weekly-note", note),
+    related_branch: note.branch,
     created_at: note.createdAt,
   };
+}
+
+function titleFromNoteText(value: string) {
+  const firstLine = value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+  return firstLine ? firstLine.slice(0, 80) : "Weekly note";
 }

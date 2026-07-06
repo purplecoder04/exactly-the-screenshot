@@ -28,14 +28,20 @@ export const Route = createFileRoute("/weekly-log")({
 
 function WeeklyLogPage() {
   const { tasks } = useTasks();
-  const { notes, addNote, updateNote, deleteNote } = useWeeklyNotes();
+  const [selectedWeekStart, setSelectedWeekStart] = useState(() => startOfWeekISO());
+  const { notes, addNote, updateNote, deleteNote } = useWeeklyNotes(selectedWeekStart);
   const [noteOpen, setNoteOpen] = useState(false);
   const [editing, setEditing] = useState<WeeklyNote | null>(null);
 
   const completedByDay = useMemo(() => {
-    const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const weekStart = new Date(`${selectedWeekStart}T00:00:00`).getTime();
+    const weekEnd = weekStart + 7 * 24 * 60 * 60 * 1000;
     const completed = tasks
-      .filter((task) => task.isDone && task.completedAt && new Date(task.completedAt).getTime() >= cutoff)
+      .filter((task) => {
+        if (!task.isDone || !task.completedAt) return false;
+        const completedAt = new Date(task.completedAt).getTime();
+        return completedAt >= weekStart && completedAt < weekEnd;
+      })
       .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""));
     const grouped = new Map<string, typeof completed>();
     for (const task of completed) {
@@ -44,7 +50,7 @@ function WeeklyLogPage() {
       grouped.get(day)!.push(task);
     }
     return grouped;
-  }, [tasks]);
+  }, [selectedWeekStart, tasks]);
 
   const rollovers = useMemo(
     () =>
@@ -65,14 +71,27 @@ function WeeklyLogPage() {
         decorAsset={plannerAssets.heartVine}
         decorClassName="right-10 top-12 h-20 w-56 opacity-30"
         actions={
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setNoteOpen(true);
-            }}
-          >
-            <Plus className="mr-1 h-4 w-4" /> Add Note
-          </Button>
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="grid gap-1 text-left">
+              <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Week Start
+              </Label>
+              <Input
+                type="date"
+                value={selectedWeekStart}
+                onChange={(event) => setSelectedWeekStart(event.target.value)}
+                className="h-9 w-40 bg-warm-white/85"
+              />
+            </div>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setNoteOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-4 w-4" /> Add Note
+            </Button>
+          </div>
         }
       >
         <div className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
@@ -83,15 +102,15 @@ function WeeklyLogPage() {
       </PlannerPageHeader>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PlannerPanel title="Completed - Last 7 Days" description="A quick scan of finished work.">
+        <PlannerPanel title="Completed - Selected Week" description="A quick scan of finished work.">
           {completedByDay.size === 0 ? (
-            <p className="text-sm text-muted-foreground">No completions in the last 7 days.</p>
+            <p className="text-sm text-muted-foreground">No completions for this selected week.</p>
           ) : (
             <div className="space-y-5">
               {[...completedByDay.entries()].map(([day, items]) => (
                 <div key={day}>
                   <div className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric" }).format(new Date(day))}
+                    {formatDisplayDate(day, { weekday: "long", month: "short", day: "numeric" })}
                   </div>
                   <ul className="space-y-2">
                     {items.map((task) => (
@@ -143,7 +162,7 @@ function WeeklyLogPage() {
                     <div className="min-w-0">
                       <div className="font-display text-xl leading-tight text-ink break-words">{note.title}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(note.date))}
+                        {formatDisplayDate(note.date, { dateStyle: "medium" })}
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-1">
@@ -176,6 +195,7 @@ function WeeklyLogPage() {
         open={noteOpen}
         onOpenChange={setNoteOpen}
         initial={editing}
+        defaultDate={selectedWeekStart}
         onSubmit={(data) => {
           if (editing) {
             updateNote(editing.id, { ...data, areaType: areaTypeFor(data.branch) });
@@ -198,29 +218,59 @@ function WeeklyStat({ value, label }: { value: number; label: string }) {
   );
 }
 
+function startOfWeekISO(date = new Date()) {
+  const start = new Date(date);
+  const day = start.getDay();
+  const daysSinceMonday = (day + 6) % 7;
+  start.setDate(start.getDate() - daysSinceMonday);
+  start.setHours(0, 0, 0, 0);
+  return toDateInputValue(start);
+}
+
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function dateInputValueToLocalDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, (month || 1) - 1, day || 1);
+}
+
+function formatDisplayDate(
+  value: string,
+  options: Intl.DateTimeFormatOptions,
+) {
+  return new Intl.DateTimeFormat("en-US", options).format(dateInputValueToLocalDate(value));
+}
+
 function NoteDialog({
   open,
   onOpenChange,
   initial,
+  defaultDate,
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initial: WeeklyNote | null;
+  defaultDate: string;
   onSubmit: (data: { title: string; branch: WorkspaceArea; note: string; date: string }) => void;
 }) {
   const [title, setTitle] = useState("");
   const [branch, setBranch] = useState<WorkspaceArea>("Brand");
   const [note, setNote] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => toDateInputValue(new Date()));
 
   useEffect(() => {
     if (!open) return;
     setTitle(initial?.title ?? "");
     setBranch(initial?.branch ?? "Brand");
     setNote(initial?.note ?? "");
-    setDate(initial?.date ?? new Date().toISOString().slice(0, 10));
-  }, [open, initial]);
+    setDate(initial?.date ?? defaultDate);
+  }, [open, initial, defaultDate]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -250,7 +300,7 @@ function NoteDialog({
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label>Date</Label>
+              <Label>Week Start</Label>
               <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </div>
           </div>
