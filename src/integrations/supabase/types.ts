@@ -1215,33 +1215,39 @@ export type Database = {
       weekly_plans: {
         Row: {
           biggest_risk: string | null
+          branch_focus: string | null
           created_at: string | null
-          focus: string | null
           id: string
           success_this_week: string | null
           top_projects: string | null
+          updated_at: string | null
           waiting_on: string | null
-          week_start: string | null
+          week_start_date: string | null
+          weekly_focus: string | null
         }
         Insert: {
           biggest_risk?: string | null
+          branch_focus?: string | null
           created_at?: string | null
-          focus?: string | null
           id?: string
           success_this_week?: string | null
           top_projects?: string | null
+          updated_at?: string | null
           waiting_on?: string | null
-          week_start?: string | null
+          week_start_date?: string | null
+          weekly_focus?: string | null
         }
         Update: {
           biggest_risk?: string | null
+          branch_focus?: string | null
           created_at?: string | null
-          focus?: string | null
           id?: string
           success_this_week?: string | null
           top_projects?: string | null
+          updated_at?: string | null
           waiting_on?: string | null
-          week_start?: string | null
+          week_start_date?: string | null
+          weekly_focus?: string | null
         }
         Relationships: []
       }

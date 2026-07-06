@@ -5,12 +5,19 @@ import { CalendarClock, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PlannerPageHeader, PlannerPanel } from "@/components/shared/PlannerPageHeader";
 import { useTasks } from "@/hooks/useTasks";
 import { useWeeklyPlanning } from "@/hooks/useWeeklyPlanning";
 import { plannerAssets } from "@/lib/plannerAssets";
-import type { TaskItem } from "@/lib/types";
+import { CORE_BRANCHES, type Branch, type TaskItem } from "@/lib/types";
 
 export const Route = createFileRoute("/weekly-planning")({
   head: () => ({
@@ -45,7 +52,12 @@ function WeeklyPlanningPage() {
         decorAsset={plannerAssets.goldSparkles}
         decorClassName="right-12 top-8 h-24 w-24 opacity-30"
         actions={
-          <Button onClick={() => toast.success("Weekly plan saved.")}>
+          <Button
+            onClick={() => {
+              updatePlan({});
+              toast.success("Weekly plan saved.");
+            }}
+          >
             <Save className="mr-1 h-4 w-4" />
             Save Plan
           </Button>
@@ -57,14 +69,36 @@ function WeeklyPlanningPage() {
         description="Only one weekly plan is active at a time. Edits save as you work."
       >
         <div className="grid gap-4">
-          <Field label="Weekly Focus">
-            <Textarea
-              value={plan.weeklyFocus}
-              rows={3}
-              onChange={(event) => updatePlan({ weeklyFocus: event.target.value })}
-              placeholder="What would make this week a meaningful company win?"
-            />
-          </Field>
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
+            <Field label="Weekly Focus">
+              <Textarea
+                value={plan.weeklyFocus}
+                rows={3}
+                onChange={(event) => updatePlan({ weeklyFocus: event.target.value })}
+                placeholder="What would make this week a meaningful company win?"
+              />
+            </Field>
+            <Field label="Branch Focus">
+              <Select
+                value={plan.branchFocus || "__blank"}
+                onValueChange={(value) =>
+                  updatePlan({ branchFocus: value === "__blank" ? "" : (value as Branch) })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No branch focus" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__blank">No branch focus</SelectItem>
+                  {CORE_BRANCHES.map((branch) => (
+                    <SelectItem key={branch} value={branch}>
+                      {branch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
 
           <div className="grid gap-3 md:grid-cols-3">
             {[0, 1, 2].map((index) => (

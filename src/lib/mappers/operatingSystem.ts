@@ -3,7 +3,9 @@ import {
   ALL_AREAS,
   DECISION_OUTCOMES,
   LIBRARY_CATEGORIES,
+  CORE_BRANCHES,
   areaTypeFor,
+  type Branch,
   type CapturedInsight,
   type ContinueWorkingState,
   type DecisionOutcome,
@@ -68,6 +70,10 @@ function safeOptionalArea(value?: string | null): WorkspaceArea | undefined {
   return ALL_AREAS.includes(value as WorkspaceArea) ? (value as WorkspaceArea) : undefined;
 }
 
+function safeBranchFocus(value?: string | null): Branch | "" {
+  return CORE_BRANCHES.includes(value as Branch) ? (value as Branch) : "";
+}
+
 function safeLibraryCategory(value?: string | null): LibraryCategory {
   return LIBRARY_CATEGORIES.includes(value as LibraryCategory)
     ? (value as LibraryCategory)
@@ -103,24 +109,27 @@ function parseTopProjects(value?: string | null): string[] {
 
 export function rowToWeeklyPlan(row: WeeklyPlanRow): WeeklyPlan {
   return {
-    weeklyFocus: row.focus ?? "",
+    weeklyFocus: row.weekly_focus ?? "",
     topProjects: parseTopProjects(row.top_projects),
     biggestRisk: row.biggest_risk ?? "",
     waitingOn: row.waiting_on ?? "",
     successThisWeek: row.success_this_week ?? "",
-    updatedAt: row.created_at ?? now(),
+    branchFocus: safeBranchFocus(row.branch_focus),
+    updatedAt: row.updated_at ?? row.created_at ?? now(),
   };
 }
 
 export function weeklyPlanToInsert(plan: WeeklyPlan): WeeklyPlanInsert {
+  const timestamp = plan.updatedAt || now();
   return {
-    focus: plan.weeklyFocus,
+    weekly_focus: plan.weeklyFocus,
     top_projects: JSON.stringify(plan.topProjects.filter(Boolean).slice(0, 3)),
     biggest_risk: plan.biggestRisk,
     waiting_on: plan.waitingOn,
     success_this_week: plan.successThisWeek,
-    week_start: new Date().toISOString().slice(0, 10),
-    created_at: plan.updatedAt,
+    branch_focus: plan.branchFocus || null,
+    week_start_date: new Date().toISOString().slice(0, 10),
+    updated_at: timestamp,
   };
 }
 

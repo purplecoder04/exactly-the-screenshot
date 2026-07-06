@@ -371,6 +371,7 @@ export const SAMPLE_WEEKLY_PLAN: WeeklyPlan = {
   waitingOn: "Final lesson outline and workbook flow decisions.",
   successThisWeek:
     "A clean lesson guide draft, tested import flow, and three usable promotion hooks.",
+  branchFocus: "",
   updatedAt: iso(),
 };
 

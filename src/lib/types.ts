@@ -166,6 +166,7 @@ export type WeeklyPlan = {
   biggestRisk: string;
   waitingOn: string;
   successThisWeek: string;
+  branchFocus: Branch | "";
   updatedAt: string;
 };
 

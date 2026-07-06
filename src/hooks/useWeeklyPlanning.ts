@@ -22,7 +22,7 @@ export function useWeeklyPlanning() {
       const { data, error } = await supabase
         .from("weekly_plans")
         .select("*")
-        .order("created_at", { ascending: false })
+        .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (cancelled) return;
@@ -84,6 +84,7 @@ function normalizeWeeklyPlan(plan: LegacyWeeklyPlan): WeeklyPlan {
     biggestRisk: plan.biggestRisk ?? "",
     waitingOn: plan.waitingOn ?? "",
     successThisWeek: plan.successThisWeek ?? "",
+    branchFocus: plan.branchFocus ?? "",
     updatedAt: plan.updatedAt ?? nowISO(),
   };
 }
